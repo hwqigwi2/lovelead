@@ -2,6 +2,10 @@ import type { TaskSlug } from "@/types";
 
 const env = (key: string, fallback = "") => process.env[key] ?? fallback;
 
+export const RKO_DESCRIPTION = "Подходит тем, кто ведёт своё дело или работает на себя. Оформи бизнес-карту и выполни условия задания. Если ты впервые сталкиваешься с ИП, самозанятостью или бизнес-картами, раздел «Как всё работает» объяснит всё простыми словами.";
+
+export const RKO_CONDITIONS = ["Разберись, какой статус подходит тебе (раздел «Как всё работает» в помощь)", "Оформи нужный статус, если его ещё нет", "Оформи бизнес-карту по ссылке", "Выполни условия задания", "Напиши менеджеру и получи выплату по условиям задания"];
+
 export const appConfig = {
   supportUrl: env("NEXT_PUBLIC_SUPPORT_URL", "https://t.me/katemode"),
   managerUrl: env("NEXT_PUBLIC_MANAGER_URL") || env("NEXT_PUBLIC_SUPPORT_URL", "https://t.me/katemode"),
@@ -17,18 +21,18 @@ export const appConfig = {
       conditions: ["Оформи карту по ссылке", "После получения сделай покупку от 500 ₽", "Напиши менеджеру после выполнения условий"],
     },
     "tbank-rko": {
-      slug: "tbank-rko" as const, title: "Т-Банк РКО", category: "Для бизнеса", payout: null,
-      payoutLabel: "от 10 000 ₽", timeLabel: "Индивидуально", difficulty: "2/5", image: "/trko.jpg",
-      url: env("NEXT_PUBLIC_TBANK_RKO_URL"), cta: "Написать менеджеру",
-      description: "Расчётно-кассовое обслуживание для бизнеса. Менеджер подскажет подходящий вариант и дальнейшие шаги.",
-      conditions: ["Получить информацию о подходящем варианте оформления бизнеса", "При необходимости обсудить с менеджером ИП/НПД", "Оформить необходимые банковские продукты", "Выполнить условия задания", "Получить вознаграждение согласно условиям"],
+      slug: "tbank-rko" as const, title: "Бизнес-карта Т-Банк", category: "Популярно", payout: 2000,
+      payoutLabel: "2 000 ₽", timeLabel: "Индивидуально", difficulty: "3/5", image: "/trko.jpg",
+      url: env("NEXT_PUBLIC_TBANK_RKO_URL"), cta: "Оформить бизнес-карту",
+      description: RKO_DESCRIPTION,
+      conditions: RKO_CONDITIONS,
     },
     rko: {
-      slug: "rko" as const, title: "РКО", category: "Для бизнеса", payout: null,
-      payoutLabel: "от 10 000 ₽", timeLabel: "Индивидуально", difficulty: "2/5", image: "/arko.jpg",
-      url: env("NEXT_PUBLIC_ALFA_RKO_URL"), cta: "Написать менеджеру",
-      description: "Расчётно-кассовое обслуживание для бизнеса. Менеджер подскажет подходящий вариант и дальнейшие шаги.",
-      conditions: ["Получить информацию о подходящем варианте оформления бизнеса", "При необходимости обсудить с менеджером ИП/НПД", "Оформить необходимые банковские продукты", "Выполнить условия задания", "Получить вознаграждение согласно условиям"],
+      slug: "rko" as const, title: "Бизнес-карта Альфа-Банк", category: "Популярно", payout: 5000,
+      payoutLabel: "5 000 ₽", timeLabel: "Индивидуально", difficulty: "3/5", image: "/arko.jpg",
+      url: env("NEXT_PUBLIC_ALFA_RKO_URL"), cta: "Оформить бизнес-карту",
+      description: RKO_DESCRIPTION,
+      conditions: RKO_CONDITIONS,
     },
     mfo: {
       slug: "mfo" as const, title: "Быстрая выплата", category: "Партнёрское предложение", payout: null,

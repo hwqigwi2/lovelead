@@ -29,10 +29,15 @@ export interface LoveLeadUser {
 export interface QualificationInput {
   age: number;
   has_tbank: boolean;
-  has_ip: boolean;
-  has_npd: boolean;
   is_military: boolean;
   has_arrest: boolean;
+}
+
+export type RkoBusinessStatus = "ip" | "self_employed" | "none";
+
+export interface RkoQuizResult {
+  has_business: boolean;
+  knows_process: boolean;
 }
 
 export interface PartnerTask {

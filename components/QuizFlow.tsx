@@ -6,14 +6,14 @@ import { haptic } from "@/components/telegram";
 import type { LoveLeadUser, QualificationInput } from "@/types";
 
 const questions: Array<{ key: keyof QualificationInput; title: string; type: "age" | "boolean" }> = [
-  { key: "age", title: "Сколько тебе лет?", type: "age" }, { key: "has_tbank", title: "Есть ли у тебя карта Т-Банк?", type: "boolean" }, { key: "has_ip", title: "Есть ли у тебя ИП?", type: "boolean" }, { key: "has_npd", title: "Есть ли у тебя самозанятость / НПД?", type: "boolean" }, { key: "is_military", title: "Ты сейчас военнослужащий?", type: "boolean" }, { key: "has_arrest", title: "Есть ли у тебя аресты или ограничения по банковским счетам?", type: "boolean" },
+  { key: "age", title: "Сколько тебе лет?", type: "age" }, { key: "has_tbank", title: "Есть ли у тебя карта Т-Банк?", type: "boolean" }, { key: "is_military", title: "Ты сейчас военнослужащий?", type: "boolean" }, { key: "has_arrest", title: "Есть ли у тебя аресты или ограничения по банковским счетам?", type: "boolean" },
 ];
 
 export function QuizFlow({ user, initData, onCompleted }: { user: LoveLeadUser; initData: string; onCompleted: (user: LoveLeadUser) => void }) {
   const [step, setStep] = useState(-1); const [answers, setAnswers] = useState<Partial<QualificationInput>>({}); const [ageDraft, setAgeDraft] = useState(""); const [error, setError] = useState(""); const [saving, setSaving] = useState(false);
   const answer = async (value: boolean | number) => {
     const question = questions[step]; const next = { ...answers, [question.key]: value }; setAnswers(next); haptic("selection");
-    if (question.key === "age" && Number(value) < 18) { await submit({ ...next, has_tbank: false, has_ip: false, has_npd: false, is_military: false, has_arrest: false } as QualificationInput); return; }
+    if (question.key === "age" && Number(value) < 18) { await submit({ ...next, has_tbank: false, is_military: false, has_arrest: false } as QualificationInput); return; }
     if (step < questions.length - 1) setStep((current) => current + 1); else await submit(next as QualificationInput);
   };
   const submit = async (payload: QualificationInput) => { setSaving(true); setError(""); try { const response = await fetch("/api/quiz", { method: "POST", headers: { "content-type": "application/json", "x-telegram-init-data": initData }, body: JSON.stringify(payload) }); const data = await response.json(); if (!response.ok) throw new Error(data.error); onCompleted({ ...user, ...payload, quiz_completed: true }); } catch (err) { setError(err instanceof Error ? err.message : "Не удалось загрузить данные. Попробуйте ещё раз."); } finally { setSaving(false); } };

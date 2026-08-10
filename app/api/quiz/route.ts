@@ -4,7 +4,7 @@ import { checkRateLimit, requireUser } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { getAvailableTaskSlugs } from "@/lib/qualificationEngine";
 
-const answersSchema = z.object({ age: z.number().int().min(0).max(120), has_tbank: z.boolean(), has_ip: z.boolean(), has_npd: z.boolean(), is_military: z.boolean(), has_arrest: z.boolean() });
+const answersSchema = z.object({ age: z.number().int().min(0).max(120), has_tbank: z.boolean(), is_military: z.boolean(), has_arrest: z.boolean() });
 export async function POST(request: NextRequest) {
   if (!checkRateLimit(request, 10)) return NextResponse.json({ error: "Слишком много попыток. Попробуйте позже." }, { status: 429 });
   try {

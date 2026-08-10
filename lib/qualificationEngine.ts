@@ -1,5 +1,5 @@
 import { appConfig } from "./config";
-import type { QualificationInput, TaskSlug } from "@/types";
+import type { QualificationInput, RkoQuizResult, TaskSlug } from "@/types";
 
 export function getAvailableTaskSlugs(input: QualificationInput): TaskSlug[] {
   if (input.age < 18) return [];
@@ -14,5 +14,11 @@ export function isTaskAvailable(input: QualificationInput, slug: TaskSlug): bool
 }
 
 export function hasQualification(input: Partial<Record<keyof QualificationInput, unknown>>): input is QualificationInput {
-  return typeof input.age === "number" && typeof input.has_tbank === "boolean" && typeof input.has_ip === "boolean" && typeof input.has_npd === "boolean" && typeof input.is_military === "boolean" && typeof input.has_arrest === "boolean";
+  return typeof input.age === "number" && typeof input.has_tbank === "boolean" && typeof input.is_military === "boolean" && typeof input.has_arrest === "boolean";
+}
+
+// Гайд «Как всё работает» нужен всем, у кого нет действующего ИП/НПД/самозанятости.
+// Статус есть + знает процесс → сразу к заданию; во всех остальных случаях → гайд.
+export function isRkoGuideRequired(input: RkoQuizResult): boolean {
+  return !input.has_business || !input.knows_process;
 }

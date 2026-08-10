@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getAvailableTaskSlugs, hasQualification, isTaskAvailable } from "../lib/qualificationEngine";
+import { getAvailableTaskSlugs, hasQualification, isRkoGuideRequired, isTaskAvailable } from "../lib/qualificationEngine";
+import { appConfig } from "../lib/config";
+import type { QualificationInput } from "../types";
 
-const input = (overrides = {}) => ({ age: 18, has_tbank: false, has_ip: false, has_npd: false, is_military: false, has_arrest: false, ...overrides });
+const input = (overrides = {}) => ({ age: 18, has_tbank: false, is_military: false, has_arrest: false, ...overrides });
 
 describe("qualification engine", () => {
   it("qualifies an eligible new customer for all tasks", () => expect(getAvailableTaskSlugs(input())).toEqual(["tbank", "tbank-rko", "rko", "mfo"]));
@@ -23,7 +25,36 @@ describe("qualification engine", () => {
     expect(hasQualification(input())).toBe(true);
     expect(hasQualification({})).toBe(false);
     expect(hasQualification({ age: 18, has_tbank: false })).toBe(false);
-    expect(hasQualification({ ...input(), has_ip: "yes" })).toBe(false);
+    expect(hasQualification({ ...input(), is_military: "no" })).toBe(false);
   });
   it("returns no tasks for a user with arrests and an existing T-Bank card", () => expect(getAvailableTaskSlugs(input({ has_tbank: true, has_arrest: true }))).toEqual([]));
+});
+
+describe("general quiz", () => {
+  it("no longer requires IP/NPD questions", () => {
+    expect(hasQualification({ age: 18, has_tbank: false, is_military: false, has_arrest: false })).toBe(true);
+    expect(Object.keys(input())).not.toContain("has_ip");
+    expect(Object.keys(input())).not.toContain("has_npd");
+  });
+});
+
+describe("rko guide requirement", () => {
+  it("existing business status + knows process → no tutorial required", () => expect(isRkoGuideRequired({ has_business: true, knows_process: true })).toBe(false));
+  it("existing business status + does not know → tutorial required", () => expect(isRkoGuideRequired({ has_business: true, knows_process: false })).toBe(true));
+  it("no business status + knows → tutorial required", () => expect(isRkoGuideRequired({ has_business: false, knows_process: true })).toBe(true));
+  it("no business status + does not know → tutorial required", () => expect(isRkoGuideRequired({ has_business: false, knows_process: false })).toBe(true));
+});
+
+describe("rko task config", () => {
+  it("Alfa business card payout is 5000", () => expect(appConfig.tasks.rko.payout).toBe(5000));
+  it("T-Bank business card payout is 2000", () => expect(appConfig.tasks["tbank-rko"].payout).toBe(2000));
+  it("both have difficulty 3/5", () => {
+    expect(appConfig.tasks.rko.difficulty).toBe("3/5");
+    expect(appConfig.tasks["tbank-rko"].difficulty).toBe("3/5");
+  });
+  it("both have category Популярно", () => {
+    expect(appConfig.tasks.rko.category).toBe("Популярно");
+    expect(appConfig.tasks["tbank-rko"].category).toBe("Популярно");
+  });
+  it("manager URL is https://t.me/katemode", () => expect(appConfig.managerUrl).toBe("https://t.me/katemode"));
 });
