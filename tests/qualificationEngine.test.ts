@@ -56,5 +56,11 @@ describe("rko task config", () => {
     expect(appConfig.tasks.rko.category).toBe("Популярно");
     expect(appConfig.tasks["tbank-rko"].category).toBe("Популярно");
   });
+  it("Alfa payout label is «5 000 ₽»", () => expect(appConfig.tasks.rko.payoutLabel).toBe("5 000 ₽"));
+  it("T-Bank payout label is «от 2 000 ₽»", () => expect(appConfig.tasks["tbank-rko"].payoutLabel).toBe("от 2 000 ₽"));
+  it("both RKO tasks have CTA «Оформить бизнес-карту»", () => {
+    expect(appConfig.tasks.rko.cta).toBe("Оформить бизнес-карту");
+    expect(appConfig.tasks["tbank-rko"].cta).toBe("Оформить бизнес-карту");
+  });
   it("manager URL is https://t.me/katemode", () => expect(appConfig.managerUrl).toBe("https://t.me/katemode"));
 });

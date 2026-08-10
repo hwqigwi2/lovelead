@@ -24,6 +24,7 @@ export interface LoveLeadUser {
   has_arrest: boolean | null;
   quiz_completed: boolean;
   quiz_completed_at: string | null;
+  rko_onboarding_completed: boolean;
 }
 
 export interface QualificationInput {

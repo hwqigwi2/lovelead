@@ -2,9 +2,9 @@ import type { TaskSlug } from "@/types";
 
 const env = (key: string, fallback = "") => process.env[key] ?? fallback;
 
-export const RKO_DESCRIPTION = "Подходит тем, кто ведёт своё дело или работает на себя. Оформи бизнес-карту и выполни условия задания. Если ты впервые сталкиваешься с ИП, самозанятостью или бизнес-картами, раздел «Как всё работает» объяснит всё простыми словами.";
+export const RKO_DESCRIPTION = "Подходит тем, кто ведёт своё дело или работает на себя. Оформи бизнес-карту и выполни условия задания. Если ты впервые сталкиваешься с ИП, самозанятостью или бизнес-картами, раздел «Как это работает» объяснит всё простыми словами.";
 
-export const RKO_CONDITIONS = ["Разберись, какой статус подходит тебе (раздел «Как всё работает» в помощь)", "Оформи нужный статус, если его ещё нет", "Оформи бизнес-карту по ссылке", "Выполни условия задания", "Напиши менеджеру и получи выплату по условиям задания"];
+export const RKO_CONDITIONS = ["Разберись, какой статус подходит тебе (раздел «Как это работает» в помощь)", "Оформи нужный статус, если его ещё нет", "Оформи бизнес-карту по ссылке", "Выполни условия задания", "Получи выплату по условиям задания"];
 
 export const appConfig = {
   supportUrl: env("NEXT_PUBLIC_SUPPORT_URL", "https://t.me/katemode"),
@@ -22,7 +22,7 @@ export const appConfig = {
     },
     "tbank-rko": {
       slug: "tbank-rko" as const, title: "Бизнес-карта Т-Банк", category: "Популярно", payout: 2000,
-      payoutLabel: "2 000 ₽", timeLabel: "Индивидуально", difficulty: "3/5", image: "/trko.jpg",
+      payoutLabel: "от 2 000 ₽", timeLabel: "Индивидуально", difficulty: "3/5", image: "/trko.jpg",
       url: env("NEXT_PUBLIC_TBANK_RKO_URL"), cta: "Оформить бизнес-карту",
       description: RKO_DESCRIPTION,
       conditions: RKO_CONDITIONS,

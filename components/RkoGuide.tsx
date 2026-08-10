@@ -32,13 +32,13 @@ export const rkoGuideSteps = [
 
 export function RkoGuide({ onCompleted }: { onCompleted: () => void }) {
   const [step, setStep] = useState(0);
-  const [countdown, setCountdown] = useState(GUIDE_SECONDS);
+  const [stepReady, setStepReady] = useState(false);
   const [finished, setFinished] = useState(false);
 
   useEffect(() => {
-    setCountdown(GUIDE_SECONDS);
-    const interval = window.setInterval(() => setCountdown((value) => (value > 0 ? value - 1 : 0)), 1000);
-    return () => window.clearInterval(interval);
+    setStepReady(false);
+    const timeout = window.setTimeout(() => setStepReady(true), GUIDE_SECONDS * 1000);
+    return () => window.clearTimeout(timeout);
   }, [step, finished]);
 
   const percent = useMemo(() => ((Math.min(step + 1, rkoGuideSteps.length)) / rkoGuideSteps.length) * 100, [step]);
@@ -57,10 +57,10 @@ export function RkoGuide({ onCompleted }: { onCompleted: () => void }) {
   if (finished) {
     return (
       <main className="quiz">
-        <div className="quiz-head"><button className="text-button" onClick={back}><ArrowLeft size={15} /> Назад</button><span>Финал</span></div>
+        <div className="quiz-head"><button className="guide-back-button" onClick={back}><ArrowLeft size={16} /> Назад</button><span>Финал</span></div>
         <div className="progress-track"><motion.div className="progress-value" animate={{ width: "100%" }} /></div>
         <motion.section initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} className="quiz-card">
-          <span className="eyebrow">КАК ВСЁ РАБОТАЕТ</span>
+          <span className="eyebrow">КАК ЭТО РАБОТАЕТ</span>
           <h1>Всё понятно?</h1>
           <p>Если остались вопросы — можешь написать менеджеру. Если всё понятно, можно перейти к оформлению.</p>
           <div className="answer-stack">
@@ -76,18 +76,18 @@ export function RkoGuide({ onCompleted }: { onCompleted: () => void }) {
   return (
     <main className="quiz">
       <div className="quiz-head">
-        {step > 0 ? <button className="text-button" onClick={back}><ArrowLeft size={15} /> Назад</button> : <span />}
+        {step > 0 ? <button className="guide-back-button" onClick={back}><ArrowLeft size={16} /> Назад</button> : <span />}
         <span>{step + 1} из {rkoGuideSteps.length}</span>
       </div>
       <div className="progress-track"><motion.div className="progress-value" animate={{ width: `${percent}%` }} /></div>
       <AnimatePresence mode="wait">
         <motion.section key={step} initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="quiz-card">
-          <span className="eyebrow">КАК ВСЁ РАБОТАЕТ</span>
+          <span className="eyebrow">КАК ЭТО РАБОТАЕТ</span>
           <h1>{screen.title}</h1>
           <p>{screen.text}</p>
-          <button className="primary-button" onClick={next} disabled={countdown > 0}>
-            {countdown > 0 ? <span className="countdown-wrap"><span className="countdown-pulse" />Далее через {countdown} сек</span> : <><span>Далее</span><ArrowRight size={19} /></>}
-          </button>
+          <motion.button className="primary-button" onClick={next} disabled={!stepReady} animate={stepReady ? { scale: [1, 1.04, 1] } : undefined} transition={{ duration: 0.35 }}>
+            <span>Далее</span><ArrowRight size={19} />
+          </motion.button>
         </motion.section>
       </AnimatePresence>
     </main>

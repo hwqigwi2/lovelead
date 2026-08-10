@@ -42,8 +42,8 @@ export function TaskDetail({ task, initData, onClose, onStarted }: { task: Partn
           <span>{task.url ? (task.cta ?? "Перейти к заданию") : "Скоро будет доступно"}</span>
           {task.url && <ArrowUpRight size={19} />}
         </button>
-        <button className="secondary-button manager-button" onClick={() => { haptic(); openSmartLink(appConfig.managerUrl); }}>Написать менеджеру</button>
-        {isRko && <button className="secondary-button" onClick={() => { haptic(); setShowGuide(true); }}>Как всё работает</button>}
+        {!isRko && <button className="secondary-button manager-button" onClick={() => { haptic(); openSmartLink(appConfig.managerUrl); }}>Написать менеджеру</button>}
+        {isRko && <button className="secondary-button" onClick={() => { haptic(); setShowGuide(true); }}>Как это работает</button>}
       </section>
     </main>
   );

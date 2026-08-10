@@ -17,7 +17,7 @@ export function hasQualification(input: Partial<Record<keyof QualificationInput,
   return typeof input.age === "number" && typeof input.has_tbank === "boolean" && typeof input.is_military === "boolean" && typeof input.has_arrest === "boolean";
 }
 
-// Гайд «Как всё работает» нужен всем, у кого нет действующего ИП/НПД/самозанятости.
+// Гайд «Как это работает» нужен всем, у кого нет действующего ИП/НПД/самозанятости.
 // Статус есть + знает процесс → сразу к заданию; во всех остальных случаях → гайд.
 export function isRkoGuideRequired(input: RkoQuizResult): boolean {
   return !input.has_business || !input.knows_process;

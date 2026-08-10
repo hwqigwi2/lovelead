@@ -76,10 +76,8 @@
 .admin-action:active { transform:scale(.96); }
 .admin-action:disabled { opacity:.55; }
 .admin-action-ghost { color:#1b4ba9; background:#eaf0ff; }
-/* --- RKO guide countdown --- */
-.countdown-wrap { display:flex; align-items:center; justify-content:center; gap:9px; }
-.countdown-pulse { width:9px; height:9px; border-radius:50%; background:#fff; animation:guide-pulse 1s ease-in-out infinite; }
-.text-button { display:flex; align-items:center; gap:4px; }
+/* --- RKO guide --- */
+.guide-back-button { display:flex; align-items:center; gap:5px; padding:9px 14px; border:1px solid rgba(80,102,141,.14); border-radius:99px; color:var(--ink); background:rgba(255,255,255,.68); font-weight:800; font-size:12px; box-shadow:0 3px 10px rgba(32,55,93,.06); }
+.guide-back-button:active { transform:scale(.97); }
 .quiz-card .primary-button { margin-top:24px; }
 .detail-card .secondary-button { margin-top:10px; }
-@keyframes guide-pulse { 50% { transform:scale(1.8); opacity:.45; } }
