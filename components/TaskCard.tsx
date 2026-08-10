@@ -1,0 +1,6 @@
+"use client";
+import Image from "next/image";
+import { ArrowUpRight, Clock3 } from "lucide-react";
+import type { PartnerTask } from "@/types";
+
+export function TaskCard({ task, onOpen }: { task: PartnerTask; onOpen: () => void }) { return <article className="task-card"><div className="task-image"><Image src={task.image} alt={task.title} fill sizes="(max-width: 600px) 100vw, 420px" /></div><div className="task-body"><div className="task-meta"><span>{task.category}</span>{task.status === "started" && <span className="status-badge">В процессе</span>}</div><div className="task-title-row"><h3>{task.title}</h3><strong>{task.payout_label}</strong></div><p>{task.description}</p><div className="task-footer"><span><Clock3 size={15} />{task.time_label}</span><span>Сложность · {task.difficulty}</span></div><button className="secondary-button" onClick={onOpen}><span>{task.status === "started" ? "Продолжить" : "Подробнее"}</span><ArrowUpRight size={18} /></button></div></article>; }
