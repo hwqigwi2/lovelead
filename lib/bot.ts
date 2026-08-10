@@ -7,5 +7,8 @@ export async function sendStartMessage(chatId: number, firstName: string, miniAp
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ chat_id: chatId, text: `Привет, ${firstName} 👋\n\nЗдесь можно получать доступные задания и выполнять их за вознаграждение.`, reply_markup: { inline_keyboard: [[{ text: "Получить задание", web_app: { url: miniAppUrl } }]] } }),
   });
-  if (!response.ok) throw new Error("Telegram API rejected message.");
+  if (!response.ok) {
+    const errorBody = await response.text();
+    console.error("Telegram API error:", response.status, errorBody);
+    throw new Error(`Telegram API rejected message: ${response.status}`);
 }
