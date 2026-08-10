@@ -5,7 +5,7 @@ export function getAvailableTaskSlugs(input: QualificationInput): TaskSlug[] {
   if (input.age < 18) return [];
   const available: TaskSlug[] = [];
   if (!input.has_tbank) available.push("tbank");
-  if (!input.is_military && !input.has_arrest) available.push("rko", "mfo");
+  if (!input.is_military && !input.has_arrest) available.push("tbank-rko", "rko", "mfo");
   return appConfig.taskOrder.filter((slug) => available.includes(slug));
 }
 

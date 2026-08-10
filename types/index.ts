@@ -1,5 +1,5 @@
-export type TaskSlug = "tbank" | "rko" | "mfo";
-export type UserTaskStatus = "available" | "started" | "hidden";
+export type TaskSlug = "tbank" | "tbank-rko" | "rko" | "mfo";
+export type UserTaskStatus = "available" | "started" | "hidden" | "locked";
 
 export interface TelegramUser {
   id: number;
@@ -49,4 +49,5 @@ export interface PartnerTask {
   url: string | null;
   status: UserTaskStatus;
   conditions?: string[];
+  cta?: string;
 }

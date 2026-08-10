@@ -7,7 +7,8 @@ import { BottomNav, type NavView } from "@/components/BottomNav";
 import { Faq } from "@/components/Faq";
 import { TaskCard } from "@/components/TaskCard";
 import { TaskDetail } from "@/components/TaskDetail";
-import { openExternal } from "@/components/telegram";
+import { openSmartLink } from "@/components/telegram";
+import { appConfig } from "@/lib/config";
 import type { LoveLeadUser, PartnerTask } from "@/types";
 
 const Reviews = dynamic(() => import("@/components/Reviews").then((mod) => mod.Reviews), { ssr: false });
@@ -17,6 +18,8 @@ export function Dashboard({ user, initData, onRestart }: { user: LoveLeadUser; i
   useEffect(() => { void loadTasks(); }, []); // initial authenticated task fetch
   useEffect(() => { const back = () => setSelected(null); const app = window.Telegram?.WebApp; if (selected) { app?.BackButton.show(); app?.BackButton.onClick(back); } else app?.BackButton.hide(); return () => app?.BackButton.offClick(back); }, [selected]);
   if (selected) return <TaskDetail task={selected} initData={initData} onClose={() => setSelected(null)} onStarted={() => void loadTasks()} />;
-  const content = view === "help" ? <><Faq /><button className="support-button" onClick={() => openExternal(process.env.NEXT_PUBLIC_SUPPORT_URL ?? "https://t.me/katemode")}><Headphones size={19} />Написать в поддержку</button></> : <><section className="home-intro"><span className="eyebrow">LOVELEAD</span><h1>{view === "home" ? "Задания для тебя" : "Доступные задания"}</h1><p>{view === "home" ? "Подобрали задания, которые доступны тебе." : "Выбери задание и узнай условия до перехода."}</p></section>{error ? <p className="form-error">{error}</p> : tasks.length ? <div className="task-list">{tasks.map((task) => <TaskCard task={task} key={task.id} onOpen={() => setSelected(task)} />)}</div> : <div className="empty-inline"><Image src="/logo.png" alt="LoveLead" width={90} height={60} /><h2>Пока нет подходящих заданий</h2><p>Проверь доступность заданий позже.</p></div>}{view === "home" && <><Reviews /><Faq /></>}<button className="restart-button" onClick={onRestart}><RefreshCw size={16} />Пройти опрос заново</button></>;
+  const available = tasks.filter((task) => task.status !== "locked"); const locked = tasks.filter((task) => task.status === "locked");
+  const taskSections = error ? <p className="form-error">{error}</p> : <><section className="home-intro"><span className="eyebrow">LOVELEAD</span><h1>Задания для тебя</h1><p>Подобрали задания, которые доступны тебе.</p></section>{available.length ? <div className="task-list">{available.map((task) => <TaskCard task={task} key={task.id} onOpen={() => setSelected(task)} />)}</div> : locked.length ? <p className="empty-note">Сейчас доступных заданий нет.</p> : <div className="empty-inline"><Image src="/logo.png" alt="LoveLead" width={90} height={60} /><h2>Пока нет подходящих заданий</h2><p>Проверь доступность заданий позже.</p></div>}{locked.length > 0 && <section className="other-tasks"><h2>Другие задания</h2><div className="task-list locked-list">{locked.map((task) => <TaskCard task={task} key={task.id} onOpen={() => undefined} />)}</div></section>}</>;
+  const content = view === "help" ? <><Faq /><button className="support-button" onClick={() => openSmartLink(appConfig.supportUrl)}><Headphones size={19} />Написать в поддержку</button></> : <>{taskSections}<Reviews /><Faq /><button className="restart-button" onClick={onRestart}><RefreshCw size={16} />Пройти опрос заново</button></>;
   return <main className="dashboard"><header className="app-header"><div className="avatar">{user.avatar_url ? <Image src={user.avatar_url} alt="" fill sizes="40px" /> : user.first_name.slice(0, 1)}</div><p>Привет, <strong>{user.first_name}</strong></p></header>{content}<BottomNav view={view} onChange={setView} /></main>;
 }

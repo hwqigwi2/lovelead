@@ -2,7 +2,7 @@
 
 declare global { interface Window { Telegram?: { WebApp?: TelegramWebApp } } }
 interface TelegramWebApp {
-  initData: string; ready(): void; expand(): void; openLink(url: string): void;
+  initData: string; ready(): void; expand(): void; openLink(url: string): void; openTelegramLink?(url: string): void;
   BackButton: { show(): void; hide(): void; onClick(cb: () => void): void; offClick(cb: () => void): void };
   HapticFeedback?: { selectionChanged(): void; impactOccurred(style: "light" | "medium"): void };
 }
@@ -10,3 +10,11 @@ interface TelegramWebApp {
 export function telegram() { return window.Telegram?.WebApp; }
 export function haptic(kind: "selection" | "impact" = "selection") { const feedback = telegram()?.HapticFeedback; if (kind === "selection") feedback?.selectionChanged(); else feedback?.impactOccurred("light"); }
 export function openExternal(url: string) { const app = telegram(); if (app) app.openLink(url); else window.open(url, "_blank", "noopener,noreferrer"); }
+
+const TELEGRAM_HOST = /^https?:\/\/(t\.me|telegram\.me|telegram\.dog)\//i;
+export function isTelegramUrl(url: string) { return TELEGRAM_HOST.test(url); }
+export function openSmartLink(url: string) {
+  const app = telegram();
+  if (!app) { window.open(url, "_blank", "noopener,noreferrer"); return; }
+  if (isTelegramUrl(url) && app.openTelegramLink) app.openTelegramLink(url); else app.openLink(url);
+}
