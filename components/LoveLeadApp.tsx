@@ -12,5 +12,5 @@ export function LoveLeadApp() {
   const restart = async () => { if (!user) return; try { const response = await fetch("/api/quiz/restart", { method: "POST", headers: { "x-telegram-init-data": initData } }); if (!response.ok) throw new Error((await response.json()).error); setUser({ ...user, quiz_completed: false, quiz_completed_at: null, quiz_restart_until: null, age: null, has_tbank: null, has_ip: null, has_npd: null, is_military: null, has_arrest: null }); } catch (err) { setError(err instanceof Error ? err.message : "Не удалось загрузить данные. Попробуйте ещё раз."); setState("error"); } };
   if (state === "loading") return <LoadingScreen />;
   if (state === "error" || !user) return <main className="auth-error"><div className="error-mark">LL</div><h1>{error}</h1><p>Открой приложение через кнопку в Telegram и попробуй ещё раз.</p></main>;
-  return user.quiz_completed ? <Dashboard user={user} initData={initData} onRestart={() => void restart()} /> : <QuizFlow user={user} initData={initData} onCompleted={setUser} />;
+  return <QuizFlow user={user} initData={initData} onCompleted={setUser} />;
 }
