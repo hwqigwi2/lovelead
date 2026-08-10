@@ -5,7 +5,6 @@ const env = (key: string, fallback = "") => process.env[key] ?? fallback;
 export const appConfig = {
   supportUrl: env("NEXT_PUBLIC_SUPPORT_URL", "https://t.me/katemode"),
   adminTelegramIds: env("ADMIN_TELEGRAM_IDS", "5258394536").split(",").map(Number),
-  quizRestartSeconds: 60,
   taskOrder: ["tbank", "rko", "mfo"] as TaskSlug[],
   tasks: {
     tbank: {

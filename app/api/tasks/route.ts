@@ -15,7 +15,12 @@ export async function GET(request: NextRequest) {
     const { data: userTasks } = await db.from("user_tasks").select("task_id,status").eq("user_id", user.id);
     const statuses = new Map((userTasks ?? []).map((row) => [row.task_id, row.status]));
     const available = new Set(getAvailableTaskSlugs(user));
-    const result = (tasks ?? []).map((task) => ({ ...task, url: appConfig.tasks[task.slug as keyof typeof appConfig.tasks].url || null, status: statuses.get(task.id) ?? "available", conditions: appConfig.tasks[task.slug as keyof typeof appConfig.tasks].conditions })).filter((task) => available.has(task.slug) && statuses.get(task.id) !== "hidden" && task.url);
+    const result = (tasks ?? []).map((task) => {
+      const config = appConfig.tasks[task.slug as keyof typeof appConfig.tasks];
+      const url = config?.url || null;
+      if (!url && available.has(task.slug)) console.warn(`[tasks] URL is not configured for qualified task "${task.slug}". Set NEXT_PUBLIC_${task.slug === "tbank" ? "TBANK" : task.slug === "rko" ? "ALFA_RKO" : "MFO"}_URL.`);
+      return { ...task, url, status: statuses.get(task.id) ?? "available", conditions: config?.conditions };
+    }).filter((task) => available.has(task.slug) && statuses.get(task.id) !== "hidden");
     return NextResponse.json({ tasks: result });
   } catch {
     return NextResponse.json({ error: "Не удалось загрузить данные. Попробуйте ещё раз." }, { status: 500 });
