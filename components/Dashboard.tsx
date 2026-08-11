@@ -1,6 +1,5 @@
 "use client";
 import Image from "next/image";
-import { RefreshCw } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { BottomNav, type NavView } from "@/components/BottomNav";
@@ -26,6 +25,6 @@ export function Dashboard({ user, initData, onRestart }: { user: LoveLeadUser; i
   if (selected && rkoStage === "guide") return <RkoGuide onCompleted={() => { completeRkoOnboarding(); setRkoStage(null); }} />;
   if (selected) return <TaskDetail task={selected} initData={initData} onClose={() => setSelected(null)} onStarted={() => void loadTasks()} />;
   const taskSections = error ? <p className="form-error">{error}</p> : <><section className="home-intro"><span className="eyebrow">LOVELEAD</span><h1>Задания для тебя</h1><p>Подобрали задания, которые доступны тебе.</p></section>{tasks.length ? <div className="task-list">{tasks.map((task) => <TaskCard task={task} key={task.id} onOpen={() => openTask(task)} />)}</div> : <div className="empty-inline"><Image src="/logo.png" alt="LoveLead" width={90} height={60} /><h2>Пока нет подходящих заданий</h2><p>Проверь доступность заданий позже.</p></div>}</>;
-  const content = view === "profile" ? <Profile user={user} initData={initData} /> : <>{taskSections}<Reviews /><Faq /><button className="restart-button" onClick={onRestart}><RefreshCw size={16} />Пройти опрос заново</button></>;
-  return <main className="dashboard"><header className="app-header"><div className="avatar">{user.avatar_url ? <Image src={user.avatar_url} alt="" fill sizes="40px" /> : user.first_name.slice(0, 1)}</div><p>Привет, <strong>{user.first_name}</strong></p></header>{content}<BottomNav view={view} onChange={setView} /></main>;
+  const content = view === "profile" ? <Profile user={user} initData={initData} onRestart={onRestart} /> : <>{taskSections}<Reviews /><Faq /></>;
+  return <main className="dashboard"><header className="app-header"><div className="app-header-user"><div className="avatar">{user.avatar_url ? <Image src={user.avatar_url} alt="" fill sizes="40px" /> : user.first_name.slice(0, 1)}</div><p>Привет, <strong>{user.first_name}</strong></p></div><Image className="app-header-logo" src="/logo.png" alt="LoveLead" width={44} height={44} /></header>{content}<BottomNav view={view} onChange={setView} /></main>;
 }

@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { Share2, Users } from "lucide-react";
+import { RefreshCw, Share2, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { haptic, openSmartLink } from "@/components/telegram";
 import { appConfig } from "@/lib/config";
@@ -16,15 +16,15 @@ interface ReferralInfo {
 const rewards = [
   {
     title: "250 ₽ за дебетовую карту",
-    text: "Когда твой друг выполнит задание по дебетовой карте, с тобой свяжется менеджер и поможет с дальнейшими шагами.",
+    text: "Когда твой друг выполнит задание по дебетовой карте, с тобой свяжется менеджер для выплаты.",
   },
   {
     title: "1000 ₽ за расчётный счёт",
-    text: "Когда твой друг выполнит задание по расчётному счёту, с тобой свяжется менеджер и поможет с дальнейшими шагами.",
+    text: "Когда твой друг выполнит задание по расчётному счёту, с тобой свяжется менеджер для выплаты.",
   },
 ];
 
-export function Profile({ user, initData }: { user: LoveLeadUser; initData: string }) {
+export function Profile({ user, initData, onRestart }: { user: LoveLeadUser; initData: string; onRestart: () => void }) {
   const [info, setInfo] = useState<ReferralInfo | null>(null);
   const [error, setError] = useState("");
 
@@ -74,6 +74,7 @@ export function Profile({ user, initData }: { user: LoveLeadUser; initData: stri
         </article>
       ))}
       {error && <p className="form-error" role="alert">{error}</p>}
+      <button className="restart-button" onClick={onRestart}><RefreshCw size={16} />Пройти опрос заново</button>
     </section>
   );
 }
