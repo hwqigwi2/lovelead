@@ -112,3 +112,21 @@ describe("rko shared content", () => {
     expect(rkoGuideSteps.map((step) => step.title)).toEqual(["Легально и без заморочек", "Что такое самозанятость и НПД?", "Да, это два в одном", "Всё законно", "Как всё работает"]);
   });
 });
+
+describe("debet task", () => {
+  it("has exactly the 4 new steps", () => {
+    expect(appConfig.tasks.debet.conditions).toEqual([
+      "Нажми кнопку «Оформить»",
+      "Отправь менеджеру заготовленное сообщение",
+      "Оформи карту",
+      "Получи выплату",
+    ]);
+  });
+  it("keeps the Оформить CTA pointing at the manager link", () => {
+    expect(appConfig.tasks.debet.cta).toBe("Оформить");
+    expect(appConfig.tasks.debet.url).toBe("https://t.me/m/FjrqCMxDYjJh");
+  });
+  it("Alfa RKO keeps its CTA and manager link", () => {
+    expect(appConfig.tasks.rko.url).toBe("https://t.me/m/1zR4iOFJMmUy");
+  });
+});

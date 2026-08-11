@@ -45,9 +45,7 @@ export function TaskDetail({ task, initData, onClose, onStarted }: { task: Partn
         <h2>Что предстоит сделать</h2>
         <ol>{task.conditions?.map((item) => <li key={item}>{item}</li>)}</ol>
         {error && <p className="form-error">{error}</p>}
-        {isLocked ? null : task.status !== "available" ? (
-          task.status === "started" && <p className="detail-progress">Задание в процессе</p>
-        ) : (
+        {isLocked ? null : (
           <button className="primary-button" onClick={() => void start()} disabled={busy || !task.url}>
             <span>{task.cta ?? "Перейти к заданию"}</span><ArrowUpRight size={19} />
           </button>
