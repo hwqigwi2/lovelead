@@ -1,18 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { getAvailableTaskSlugs, hasQualification, isRkoGuideRequired, isTaskAvailable } from "../lib/qualificationEngine";
-import { appConfig } from "../lib/config";
+import { appConfig, RKO_CONDITIONS, RKO_DESCRIPTION, taskUrlEnvKeys } from "../lib/config";
+import { rkoGuideSteps } from "../components/RkoGuide";
 import type { QualificationInput } from "../types";
 
 const input = (overrides = {}) => ({ age: 18, has_tbank: false, is_military: false, has_arrest: false, ...overrides });
 
 describe("qualification engine", () => {
-  it("qualifies an eligible new customer for all tasks", () => expect(getAvailableTaskSlugs(input())).toEqual(["tbank", "tbank-rko", "rko", "mfo"]));
-  it("removes T-Bank when the user already has its card", () => expect(getAvailableTaskSlugs(input({ has_tbank: true }))).toEqual(["tbank-rko", "rko", "mfo"]));
+  it("qualifies an eligible new customer for all tasks", () => expect(getAvailableTaskSlugs(input())).toEqual(["tbank", "tbank-rko", "rko"]));
+  it("removes T-Bank when the user already has its card", () => expect(getAvailableTaskSlugs(input({ has_tbank: true }))).toEqual(["tbank-rko", "rko"]));
   it("allows only T-Bank for military users without a T-Bank card", () => expect(getAvailableTaskSlugs(input({ is_military: true }))).toEqual(["tbank"]));
   it("returns no tasks for a military T-Bank customer", () => expect(getAvailableTaskSlugs(input({ has_tbank: true, is_military: true }))).toEqual([]));
   it("allows only T-Bank when accounts are restricted", () => expect(getAvailableTaskSlugs(input({ has_arrest: true }))).toEqual(["tbank"]));
-  it("never qualifies RKO or MFO when arrest is true", () => expect(getAvailableTaskSlugs(input({ has_arrest: true })).includes("tbank-rko") || getAvailableTaskSlugs(input({ has_arrest: true })).includes("rko") || getAvailableTaskSlugs(input({ has_arrest: true })).includes("mfo")).toBe(false));
-  it("never qualifies RKO or MFO when military is true", () => expect(getAvailableTaskSlugs(input({ is_military: true })).includes("tbank-rko") || getAvailableTaskSlugs(input({ is_military: true })).includes("rko") || getAvailableTaskSlugs(input({ is_military: true })).includes("mfo")).toBe(false));
+  it("never qualifies RKO when arrest is true", () => { const slugs = getAvailableTaskSlugs(input({ has_arrest: true })); expect(slugs.includes("tbank-rko")).toBe(false); expect(slugs.includes("rko")).toBe(false); });
+  it("never qualifies RKO when military is true", () => { const slugs = getAvailableTaskSlugs(input({ is_military: true })); expect(slugs.includes("tbank-rko")).toBe(false); expect(slugs.includes("rko")).toBe(false); });
   it("does not qualify minors", () => expect(getAvailableTaskSlugs(input({ age: 17 }))).toEqual([]));
   it("qualifies a user at the lower age boundary (18)", () => expect(getAvailableTaskSlugs(input({ age: 18 })).length).toBeGreaterThan(0));
   it("isTaskAvailable reflects available slugs", () => {
@@ -43,6 +44,36 @@ describe("rko guide requirement", () => {
   it("existing business status + does not know → tutorial required", () => expect(isRkoGuideRequired({ has_business: true, knows_process: false })).toBe(true));
   it("no business status + knows → tutorial required", () => expect(isRkoGuideRequired({ has_business: false, knows_process: true })).toBe(true));
   it("no business status + does not know → tutorial required", () => expect(isRkoGuideRequired({ has_business: false, knows_process: false })).toBe(true));
+});
+
+describe("mfo removal", () => {
+  it("MFO is not qualified for any user", () => expect(getAvailableTaskSlugs(input())).not.toContain("mfo"));
+  it("MFO is absent from available slugs even for fully eligible users", () => expect(getAvailableTaskSlugs(input({ age: 30 })).includes("mfo" as never)).toBe(false));
+  it("MFO is absent from taskOrder and task config", () => {
+    expect(appConfig.taskOrder).not.toContain("mfo");
+    expect(appConfig.taskOrder).toEqual(["tbank", "tbank-rko", "rko"]);
+    expect(Object.keys(appConfig.tasks)).toEqual(["tbank", "tbank-rko", "rko"]);
+    expect(Object.keys(taskUrlEnvKeys)).toEqual(["tbank", "tbank-rko", "rko"]);
+  });
+});
+
+describe("rko shared content", () => {
+  it("both RKO tasks share the new description", () => {
+    const expected = "Бесплатно откроем ИП на НПД даже если бизнеса нет и не планировался. Никаких вложений ни сейчас, ни потом. Оформляешь карту и выполняешь условия";
+    expect(RKO_DESCRIPTION).toBe(expected);
+    expect(appConfig.tasks.rko.description).toBe(expected);
+    expect(appConfig.tasks["tbank-rko"].description).toBe(expected);
+  });
+  it("RKO conditions include «Напиши менеджеру» instead of the card link step", () => {
+    expect(RKO_CONDITIONS).toContain("Напиши менеджеру");
+    expect(RKO_CONDITIONS).not.toContain("Оформи бизнес-карту по ссылке");
+    expect(appConfig.tasks.rko.conditions).toBe(RKO_CONDITIONS);
+    expect(appConfig.tasks["tbank-rko"].conditions).toBe(RKO_CONDITIONS);
+  });
+  it("T-Bank RKO falls back to the Alfa RKO url", () => expect(appConfig.tasks["tbank-rko"].url).toBe(appConfig.tasks.rko.url));
+  it("rko guide has exactly 5 steps with the new titles", () => {
+    expect(rkoGuideSteps.map((step) => step.title)).toEqual(["Легально и без заморочек", "Что такое самозанятость и НПД?", "Да, это два в одном", "Всё законно", "Как всё работает"]);
+  });
 });
 
 describe("rko task config", () => {

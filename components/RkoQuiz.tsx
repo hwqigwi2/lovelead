@@ -40,7 +40,7 @@ export function RkoQuiz({ onCompleted, onExit }: { onCompleted: (guideRequired: 
         {step === 0 ? (
           <motion.section key="status" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="quiz-card">
             <span className="eyebrow">ПАРА ВОПРОСОВ</span>
-            <h1>Есть ли у тебя сейчас ИП, НПД или самозанятость?</h1>
+            <h1>Есть ли у тебя сейчас ИП или ты самозанятый?</h1>
             <div className="answer-stack">
               {statuses.map((item) => <button key={item.value} className="answer-button" onClick={() => pickStatus(item.value)}><span>{item.label}</span><ArrowRight size={19} /></button>)}
             </div>

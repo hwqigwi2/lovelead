@@ -1,4 +1,4 @@
-export type TaskSlug = "tbank" | "tbank-rko" | "rko" | "mfo";
+export type TaskSlug = "tbank" | "tbank-rko" | "rko";
 export type UserTaskStatus = "available" | "started" | "hidden" | "locked";
 
 export interface TelegramUser {

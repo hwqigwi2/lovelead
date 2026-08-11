@@ -39,7 +39,7 @@ export function TaskDetail({ task, initData, onClose, onStarted }: { task: Partn
         <ol>{task.conditions?.map((item) => <li key={item}>{item}</li>)}</ol>
         {error && <p className="form-error">{error}</p>}
         <button className="primary-button" onClick={() => void go()} disabled={!task.url}>
-          <span>{task.url ? (task.cta ?? "Перейти к заданию") : "Скоро будет доступно"}</span>
+          <span>{task.url ? (task.cta ?? "Перейти к заданию") : (task.cta ?? "Скоро будет доступно")}</span>
           {task.url && <ArrowUpRight size={19} />}
         </button>
         {!isRko && <button className="secondary-button manager-button" onClick={() => { haptic(); openSmartLink(appConfig.managerUrl); }}>Написать менеджеру</button>}

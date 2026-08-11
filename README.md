@@ -7,7 +7,7 @@ LoveLead — mobile-first Telegram Mini App для показа персонал
 - серверная проверка Telegram `initData` по алгоритму Telegram Web Apps;
 - автоматический upsert Telegram-профиля по уникальному `telegram_id`;
 - quiz и изолированный qualification engine;
-- задания T-Банк, РКО и МФО с серверной фильтрацией и состояниями `available` / `started` / `hidden`;
+- задания T-Банк и РКО (Альфа и Т-Банк) с серверной фильтрацией и состояниями `available` / `started` / `hidden`;
 - админ-панель `/admin`, доступная только Telegram ID из `ADMIN_TELEGRAM_IDS`;
 - миграция с таблицами, индексами, внешними ключами, триггерами и RLS;
 - реальные предоставленные изображения партнёров и отзывов в `public/`;

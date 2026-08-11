@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     ]);
     if (error) throw error;
     const qualified = (users ?? []).filter(hasQualification);
-    const countAvailable = (slug: string) => qualified.filter((user) => getAvailableTaskSlugs(user).includes(slug as "tbank" | "rko" | "mfo")).length;
+    const countAvailable = (slug: string) => qualified.filter((user) => (getAvailableTaskSlugs(user) as string[]).includes(slug)).length;
     const countStarted = (slug: string) => (started ?? []).filter((row) => { const task = row.tasks as unknown as { slug: string } | null; return task?.slug === slug; }).length;
     return NextResponse.json({ totalUsers: users?.length ?? 0, quizCompleted: (users ?? []).filter((user) => user.quiz_completed).length, tbankAvailable: countAvailable("tbank"), rkoAvailable: countAvailable("rko"), mfoAvailable: countAvailable("mfo"), tbankStarted: countStarted("tbank"), rkoStarted: countStarted("rko"), mfoStarted: countStarted("mfo"), hiddenTasks: hidden?.length ?? 0 });
   } catch (error) {
