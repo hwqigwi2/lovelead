@@ -99,4 +99,3 @@
 /* ---- Task detail statuses ---- */
 .detail-lock { display:flex; align-items:center; gap:7px; margin:0 0 12px; padding:12px 14px; color:var(--muted); background:#eef1f5; border-radius:14px; font-size:13px; font-weight:700; }
 .detail-progress { margin:0 0 12px; padding:12px 14px; color:#1e5cc8; background:#e8f0ff; border-radius:14px; font-size:13px; font-weight:800; }
-.detail-done { display:flex; align-items:center; gap:7px; justify-content:center; margin:0; padding:14px; color:#146c2e; background:#e6f6ea; border-radius:14px; font-size:14px; font-weight:800; }

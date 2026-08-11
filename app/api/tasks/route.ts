@@ -5,7 +5,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { applyTaskDependencies, getAvailableTaskSlugs, hasQualification } from "@/lib/qualificationEngine";
 import type { TaskSlug, UserTaskStatus } from "@/types";
 
-const TBANK_RKO_LOCK_REASON = "Доступно только после выполнения Альфа расчетный счет";
+const TBANK_RKO_LOCK_REASON = "Откроется после выполнения Альфа РКО";
 
 export async function GET(request: NextRequest) {
   if (!checkRateLimit(request)) return NextResponse.json({ error: "Слишком много запросов." }, { status: 429 });

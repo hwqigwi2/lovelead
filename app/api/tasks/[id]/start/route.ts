@@ -20,7 +20,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       const { data: completedRko } = rkoTask
         ? await db.from("user_tasks").select("status").eq("user_id", user.id).eq("task_id", rkoTask.id).eq("status", "completed").maybeSingle()
         : { data: null };
-      if (!completedRko) return NextResponse.json({ error: "Доступно только после выполнения Альфа расчетный счет." }, { status: 403 });
+      if (!completedRko) return NextResponse.json({ error: "Откроется после выполнения Альфа РКО." }, { status: 403 });
     }
     await db.from("user_tasks").upsert({ user_id: user.id, task_id: id, status: "started", started_at: new Date().toISOString() }, { onConflict: "user_id,task_id" });
     return NextResponse.json({ ok: true });
