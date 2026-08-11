@@ -9,7 +9,7 @@ export const RKO_CONDITIONS = ["Разберись, какой статус по
 const ALFA_RKO_URL = "https://t.me/m/1zR4iOFJMmUy";
 
 export const appConfig = {
-  botUsername: "LeadsLoveRobot",
+  botUsername: "Leadslovebot",
   referralShareText: "LoveLead — выполняй задания и получай выплату прямо на карту 💸",
   supportUrl: "https://t.me/m/IhgXNvyFM2Yx",
   managerUrl: "https://t.me/m/bdpKeV7XZWVh",
@@ -22,7 +22,7 @@ export const appConfig = {
       payoutLabel: "до 5 000 ₽", timeLabel: "≈ 5 минут", difficulty: "1/5", image: "/debet.jpg",
       url: "https://t.me/m/FjrqCMxDYjJh", cta: "Оформить",
       description: "Оформляй дебетовые карты, выполняй условия и получай выплату.",
-      conditions: ["Оформи дебетовую карту по ссылке", "Выполни условия задания", "Получи выплату"],
+      conditions: ["Напиши менеджеру", "По кнопке «Оформить» выбери доступную карту", "Оформи карту", "Получи выплату"],
     },
     rko: {
       slug: "rko" as const, title: "Расчетный счет (Бизнес-карта) Альфа-Банк", category: "Популярно", payout: 5000,

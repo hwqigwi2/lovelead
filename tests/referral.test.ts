@@ -20,7 +20,7 @@ describe("buildReferralLink", () => {
   it("builds a t.me start link for the bot", () => {
     expect(buildReferralLink("abc123def4")).toBe(`https://t.me/${appConfig.botUsername}?start=ref_abc123def4`);
   });
-  it("bot username is LeadsLoveRobot", () => expect(appConfig.botUsername).toBe("LeadsLoveRobot"));
+  it("bot username is Leadslovebot", () => expect(appConfig.botUsername).toBe("Leadslovebot"));
 });
 
 describe("referral guards", () => {

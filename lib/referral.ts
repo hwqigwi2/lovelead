@@ -11,7 +11,7 @@ export function parseStartRef(text: string | undefined | null): string | null {
   return code.length > 0 ? code : null;
 }
 
-export function buildReferralLink(code: string, botUsername = "LeadsLoveRobot"): string {
+export function buildReferralLink(code: string, botUsername = "Leadslovebot"): string {
   return `https://t.me/${botUsername}?start=ref_${code}`;
 }
 

@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { ArrowUpRight, Share2, Users } from "lucide-react";
+import { Share2, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { haptic, openSmartLink } from "@/components/telegram";
 import { appConfig } from "@/lib/config";
@@ -74,10 +74,6 @@ export function Profile({ user, initData }: { user: LoveLeadUser; initData: stri
         </article>
       ))}
       {error && <p className="form-error" role="alert">{error}</p>}
-      <button className="support-button" onClick={() => { haptic("impact"); openSmartLink(appConfig.supportUrl); }}>
-        <ArrowUpRight size={19} />
-        Написать менеджеру
-      </button>
     </section>
   );
 }
