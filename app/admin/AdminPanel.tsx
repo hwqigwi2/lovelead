@@ -8,12 +8,12 @@ import { UserCard } from "./UserCard";
 export type Stats = {
   totalUsers: number;
   quizCompleted: number;
-  tbankAvailable: number;
+  debetAvailable: number;
   rkoAvailable: number;
-  mfoAvailable: number;
-  tbankStarted: number;
+  tbankRkoAvailable: number;
+  debetStarted: number;
   rkoStarted: number;
-  mfoStarted: number;
+  tbankRkoStarted: number;
   hiddenTasks: number;
 };
 

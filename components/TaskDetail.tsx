@@ -1,10 +1,9 @@
 "use client";
 import Image from "next/image";
-import { ArrowUpRight, Clock3, X } from "lucide-react";
+import { ArrowUpRight, Check, Clock3, Lock, X } from "lucide-react";
 import { useState } from "react";
 import { RkoGuide } from "@/components/RkoGuide";
 import { haptic, openSmartLink } from "@/components/telegram";
-import { appConfig } from "@/lib/config";
 import type { PartnerTask, TaskSlug } from "@/types";
 
 const RKO_SLUGS: TaskSlug[] = ["rko", "tbank-rko"];
@@ -12,18 +11,38 @@ const RKO_SLUGS: TaskSlug[] = ["rko", "tbank-rko"];
 export function TaskDetail({ task, initData, onClose, onStarted }: { task: PartnerTask; initData: string; onClose: () => void; onStarted: () => void }) {
   const [showGuide, setShowGuide] = useState(false);
   const [error, setError] = useState("");
-  const go = async () => {
-    if (!task.url) return;
+  const [busy, setBusy] = useState(false);
+  const post = async (action: "start" | "complete") => {
+    const response = await fetch(`/api/tasks/${task.id}/${action}`, { method: "POST", headers: { "x-telegram-init-data": initData } });
+    if (!response.ok) throw new Error((await response.json()).error);
+  };
+  const start = async () => {
     try {
-      const response = await fetch(`/api/tasks/${task.id}/start`, { method: "POST", headers: { "x-telegram-init-data": initData } });
-      if (!response.ok) throw new Error((await response.json()).error);
+      setBusy(true);
+      await post("start");
       haptic("impact");
       onStarted();
-      openSmartLink(task.url);
+      if (task.url) openSmartLink(task.url);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Не удалось загрузить данные. Попробуйте ещё раз.");
+    } finally {
+      setBusy(false);
     }
   };
+  const complete = async () => {
+    try {
+      setBusy(true);
+      await post("complete");
+      haptic("impact");
+      onStarted();
+      if (task.url) openSmartLink(task.url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось загрузить данные. Попробуйте ещё раз.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const isLocked = task.status === "locked";
   const isRko = RKO_SLUGS.includes(task.slug);
   if (showGuide) return <RkoGuide onCompleted={() => setShowGuide(false)} />;
   return (
@@ -34,15 +53,25 @@ export function TaskDetail({ task, initData, onClose, onStarted }: { task: Partn
         <span className="eyebrow">{task.category}</span>
         <div className="task-title-row"><h1>{task.title}</h1><strong>{task.payout_label}</strong></div>
         <div className="detail-facts"><span><Clock3 size={16} />{task.time_label}</span><span>Сложность · {task.difficulty}</span></div>
+        {isLocked && <p className="detail-lock"><Lock size={16} /> {task.lockReason ?? "Задание недоступно."}</p>}
         <p>{task.description}</p>
         <h2>Что предстоит сделать</h2>
         <ol>{task.conditions?.map((item) => <li key={item}>{item}</li>)}</ol>
         {error && <p className="form-error">{error}</p>}
-        <button className="primary-button" onClick={() => void go()} disabled={!task.url}>
-          <span>{task.url ? (task.cta ?? "Перейти к заданию") : (task.cta ?? "Скоро будет доступно")}</span>
-          {task.url && <ArrowUpRight size={19} />}
-        </button>
-        {!isRko && <button className="secondary-button manager-button" onClick={() => { haptic(); openSmartLink(appConfig.managerUrl); }}>Написать менеджеру</button>}
+        {isLocked ? null : task.status === "completed" ? (
+          <p className="detail-done"><Check size={18} /> Выполнено</p>
+        ) : task.status === "started" ? (
+          <>
+            <p className="detail-progress">Задание в процессе</p>
+            <button className="primary-button" onClick={() => void complete()} disabled={busy}>
+              <span>Завершить задание</span><Check size={19} />
+            </button>
+          </>
+        ) : (
+          <button className="primary-button" onClick={() => void start()} disabled={busy || !task.url}>
+            <span>{task.cta ?? "Перейти к заданию"}</span><ArrowUpRight size={19} />
+          </button>
+        )}
         {isRko && <button className="secondary-button" onClick={() => { haptic(); setShowGuide(true); }}>Как это работает</button>}
       </section>
     </main>

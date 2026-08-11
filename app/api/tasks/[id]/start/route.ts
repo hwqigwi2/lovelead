@@ -15,6 +15,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!task?.is_active || !isTaskAvailable(user, task.slug as TaskSlug)) return NextResponse.json({ error: "Задание недоступно." }, { status: 403 });
     const { data: existing } = await db.from("user_tasks").select("status").eq("user_id", user.id).eq("task_id", id).maybeSingle();
     if (existing?.status === "hidden") return NextResponse.json({ error: "Задание недоступно." }, { status: 403 });
+    if (task.slug === "tbank-rko") {
+      const { data: rkoTask } = await db.from("tasks").select("id").eq("slug", "rko").maybeSingle();
+      const { data: completedRko } = rkoTask
+        ? await db.from("user_tasks").select("status").eq("user_id", user.id).eq("task_id", rkoTask.id).eq("status", "completed").maybeSingle()
+        : { data: null };
+      if (!completedRko) return NextResponse.json({ error: "Доступно только после выполнения Альфа расчетный счет." }, { status: 403 });
+    }
     await db.from("user_tasks").upsert({ user_id: user.id, task_id: id, status: "started", started_at: new Date().toISOString() }, { onConflict: "user_id,task_id" });
     return NextResponse.json({ ok: true });
   } catch {

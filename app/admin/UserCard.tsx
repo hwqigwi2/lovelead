@@ -1,7 +1,7 @@
 import { EyeOff, RotateCcw } from "lucide-react";
 import type { AdminUser, UserTask } from "./AdminPanel";
 
-const TASK_SLUGS = ["tbank", "rko", "mfo"] as const;
+const TASK_SLUGS = ["debet", "rko", "tbank-rko"] as const;
 const CHIP_DEFS: Array<{ key: keyof AdminUser; label: string }> = [
   { key: "has_tbank", label: "T-Банк" },
   { key: "has_ip", label: "ИП" },
@@ -14,6 +14,7 @@ const STATUS_LABELS: Record<string, string> = {
   available: "Доступно",
   started: "В процессе",
   hidden: "Скрыто",
+  completed: "Выполнено",
 };
 
 type Props = {
@@ -97,9 +98,9 @@ export function UserCard({ user, updatingTask, onHide, onUnhide }: Props) {
 
 function taskTitle(slug: string): string {
   switch (slug) {
-    case "tbank": return "T-Банк";
-    case "rko": return "РКО для бизнеса";
-    case "mfo": return "Займы и МФО";
+    case "debet": return "Дебетовые карты";
+    case "rko": return "Расчетный счет Альфа-Банк";
+    case "tbank-rko": return "Расчетный счет Т-Банк";
     default: return slug;
   }
 }

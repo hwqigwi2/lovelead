@@ -1,4 +1,4 @@
-import { Banknote, Building2, ClipboardCheck, CreditCard, EyeOff, Users } from "lucide-react";
+import { Building2, ClipboardCheck, CreditCard, EyeOff, Users } from "lucide-react";
 import type { Stats } from "./AdminPanel";
 
 type TaskStat = {
@@ -11,9 +11,9 @@ type TaskStat = {
 
 export function StatCards({ stats }: { stats: Stats }) {
   const tasks: TaskStat[] = [
-    { key: "tbank", label: "T-Банк", icon: CreditCard, available: stats.tbankAvailable, started: stats.tbankStarted },
-    { key: "rko", label: "РКО", icon: Building2, available: stats.rkoAvailable, started: stats.rkoStarted },
-    { key: "mfo", label: "МФО", icon: Banknote, available: stats.mfoAvailable, started: stats.mfoStarted },
+    { key: "debet", label: "Дебетовые", icon: CreditCard, available: stats.debetAvailable, started: stats.debetStarted },
+    { key: "rko", label: "РКО Альфа", icon: Building2, available: stats.rkoAvailable, started: stats.rkoStarted },
+    { key: "tbank-rko", label: "РКО Т-Банк", icon: Building2, available: stats.tbankRkoAvailable, started: stats.tbankRkoStarted },
   ];
 
   return (

@@ -6,37 +6,37 @@ export const RKO_DESCRIPTION = "Бесплатно откроем ИП на НП
 
 export const RKO_CONDITIONS = ["Разберись, какой статус подходит тебе (раздел «Как это работает» в помощь)", "Оформи нужный статус, если его ещё нет", "Напиши менеджеру", "Выполни условия задания", "Получи выплату по условиям задания"];
 
+const ALFA_RKO_URL = "https://t.me/m/1zR4iOFJMmUy";
+
 export const appConfig = {
-  supportUrl: env("NEXT_PUBLIC_SUPPORT_URL", "https://t.me/katemode"),
-  managerUrl: env("NEXT_PUBLIC_MANAGER_URL") || env("NEXT_PUBLIC_SUPPORT_URL", "https://t.me/katemode"),
+  botUsername: "LeadsLoveRobot",
+  referralShareText: "LoveLead — выполняй задания и получай выплату прямо на карту 💸",
+  supportUrl: "https://t.me/m/IhgXNvyFM2Yx",
+  managerUrl: "https://t.me/m/bdpKeV7XZWVh",
   reviewsTelegramUrl: env("NEXT_PUBLIC_REVIEWS_URL", "https://t.me/example"),
   adminTelegramIds: env("ADMIN_TELEGRAM_IDS", "5258394536").split(",").map(Number),
-  taskOrder: ["tbank", "tbank-rko", "rko"] as TaskSlug[],
+  taskOrder: ["debet", "rko", "tbank-rko"] as TaskSlug[],
   tasks: {
-    tbank: {
-      slug: "tbank" as const, title: "Карта Т-Банк", category: "Карты", payout: 1000,
-      payoutLabel: "1 000 ₽", timeLabel: "≈ 5 минут", difficulty: "1/5", image: "/tbank.jpg",
-      url: env("NEXT_PUBLIC_TBANK_URL"), cta: "Оформить карту",
-      description: "Оформи карту, получи её и выполни покупку от 500 ₽. После выполнения напиши менеджеру, чтобы получить выплату согласно условиям задания.",
-      conditions: ["Оформи карту по ссылке", "После получения сделай покупку от 500 ₽", "Напиши менеджеру после выполнения условий"],
+    debet: {
+      slug: "debet" as const, title: "Дебетовые карты", category: "Карты", payout: 5000,
+      payoutLabel: "до 5 000 ₽", timeLabel: "≈ 5 минут", difficulty: "1/5", image: "/debet.jpg",
+      url: "https://t.me/m/FjrqCMxDYjJh", cta: "Оформить",
+      description: "Оформляй дебетовые карты, выполняй условия и получай выплату.",
+      conditions: ["Оформи дебетовую карту по ссылке", "Выполни условия задания", "Получи выплату"],
     },
-    "tbank-rko": {
-      slug: "tbank-rko" as const, title: "Бизнес-карта Т-Банк", category: "Популярно", payout: 2000,
-      payoutLabel: "от 2 000 ₽", timeLabel: "Индивидуально", difficulty: "3/5", image: "/trko.jpg",
-      url: env("NEXT_PUBLIC_TBANK_RKO_URL") || env("NEXT_PUBLIC_ALFA_RKO_URL"), cta: "Оформить бизнес-карту",
+    rko: {
+      slug: "rko" as const, title: "Расчетный счет (Бизнес-карта) Альфа-Банк", category: "Популярно", payout: 5000,
+      payoutLabel: "5 000 ₽", timeLabel: "Индивидуально", difficulty: "3/5", image: "/arko.jpg",
+      url: ALFA_RKO_URL, cta: "Оформить бизнес-карту",
       description: RKO_DESCRIPTION,
       conditions: RKO_CONDITIONS,
     },
-    rko: {
-      slug: "rko" as const, title: "Бизнес-карта Альфа-Банк", category: "Популярно", payout: 5000,
-      payoutLabel: "5 000 ₽", timeLabel: "Индивидуально", difficulty: "3/5", image: "/arko.jpg",
-      url: env("NEXT_PUBLIC_ALFA_RKO_URL"), cta: "Оформить бизнес-карту",
+    "tbank-rko": {
+      slug: "tbank-rko" as const, title: "Расчетный счет (Бизнес-карта) Т-Банк", category: "Популярно", payout: 2000,
+      payoutLabel: "от 2 000 ₽", timeLabel: "Индивидуально", difficulty: "3/5", image: "/trko.jpg",
+      url: ALFA_RKO_URL, cta: "Оформить бизнес-карту",
       description: RKO_DESCRIPTION,
       conditions: RKO_CONDITIONS,
     },
   },
 } as const;
-
-export const taskUrlEnvKeys: Record<TaskSlug, string> = {
-  tbank: "NEXT_PUBLIC_TBANK_URL", "tbank-rko": "NEXT_PUBLIC_TBANK_RKO_URL", rko: "NEXT_PUBLIC_ALFA_RKO_URL",
-};

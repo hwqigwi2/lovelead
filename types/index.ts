@@ -1,5 +1,5 @@
-export type TaskSlug = "tbank" | "tbank-rko" | "rko";
-export type UserTaskStatus = "available" | "started" | "hidden" | "locked";
+export type TaskSlug = "debet" | "rko" | "tbank-rko";
+export type UserTaskStatus = "available" | "started" | "hidden" | "locked" | "completed";
 
 export interface TelegramUser {
   id: number;
@@ -25,11 +25,12 @@ export interface LoveLeadUser {
   quiz_completed: boolean;
   quiz_completed_at: string | null;
   rko_onboarding_completed: boolean;
+  referral_code: string | null;
+  referred_by: string | null;
 }
 
 export interface QualificationInput {
   age: number;
-  has_tbank: boolean;
   is_military: boolean;
   has_arrest: boolean;
 }
@@ -54,6 +55,7 @@ export interface PartnerTask {
   image: string;
   url: string | null;
   status: UserTaskStatus;
+  lockReason?: string | null;
   conditions?: string[];
   cta?: string;
 }
