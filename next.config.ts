@@ -5,6 +5,9 @@ import { fileURLToPath } from "node:url";
 const imageRemotePatterns = [
   { protocol: "https" as const, hostname: "t.me" },
   { protocol: "https" as const, hostname: "**.t.me" },
+  // Telegram photo_url ведёт на CDN вида cdn4.telesco.pe — добавляем.
+  { protocol: "https" as const, hostname: "cdn4.telesco.pe" },
+  { protocol: "https" as const, hostname: "**.telesco.pe" },
 ];
 
 // Mini App открывается внутри webview/iframe Telegram, поэтому
@@ -13,7 +16,7 @@ const contentSecurityPolicy = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' https://telegram.org https://*.telegram.org",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://t.me https://*.t.me",
+  "img-src 'self' data: blob: https://t.me https://*.t.me https://cdn4.telesco.pe https://*.telesco.pe",
   "font-src 'self' data:",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
   "frame-ancestors https://web.telegram.org https://*.telegram.org https://t.me",

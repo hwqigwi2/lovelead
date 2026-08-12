@@ -43,7 +43,18 @@ export async function GET(request: NextRequest) {
       }
       return { ...task, url: resolveTaskUrl(slug, user), status: (statuses.get(task.id) ?? "available") as UserTaskStatus, conditions: config?.conditions, cta: config?.cta };
     });
-    result.sort((a, b) => a.sort_order - b.sort_order);
+    // Сортировка: при арестах доступная Альфа (rko) идёт первой; доступные — выше
+    // недоступных; tbank-rko (зависит от Альфы) остаётся внизу. Для пользователей
+    // без арестов порядок не меняется — обычный sort_order.
+    const arrest = user.has_arrest === true;
+    const rank = (task: (typeof result)[number]) => {
+      if (!arrest) return task.sort_order;
+      if (task.slug === "tbank-rko") return 90;
+      const availableOrder = task.slug === "rko" ? 0 : 10;
+      if (task.status !== "locked") return availableOrder;
+      return task.slug === "rko" ? 50 : 40;
+    };
+    result.sort((a, b) => rank(a) - rank(b) || a.sort_order - b.sort_order);
     return NextResponse.json({ tasks: result });
   } catch {
     return NextResponse.json({ error: "Не удалось загрузить данные. Попробуйте ещё раз." }, { status: 500 });

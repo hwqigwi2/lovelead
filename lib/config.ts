@@ -14,7 +14,7 @@ export const appConfig = {
   referralShareText: "LoveLead — выполняй задания и получай выплату прямо на карту 💸",
   supportUrl: "https://t.me/m/IhgXNvyFM2Yx",
   managerUrl: "https://t.me/m/bdpKeV7XZWVh",
-  reviewsTelegramUrl: env("NEXT_PUBLIC_REVIEWS_URL", "https://t.me/example"),
+  reviewsTelegramUrl: env("NEXT_PUBLIC_REVIEWS_URL", "https://t.me/Rep_LoveLead"),
   adminTelegramIds: env("ADMIN_TELEGRAM_IDS", "5258394536").split(",").map(Number),
   taskOrder: ["debet", "rko", "tbank-rko"] as TaskSlug[],
   tasks: {
