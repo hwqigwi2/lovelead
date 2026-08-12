@@ -1,8 +1,9 @@
 const bucket = new Map<string, { count: number; resetAt: number }>();
 
-// Локальный fallback только для разработки и тестов. В production на Vercel
-// serverless-инстансы не делят память, поэтому используется Upstash Redis, а
-// критичные (failClosed) endpoint'ы без Upstash закрываются, а не открываются.
+// Локальный fallback для разработки/тестов и для production без Upstash.
+// В production на Vercel serverless-инстансы не делят память, поэтому при
+// настроенном Upstash используется он (точный общий лимит). Критичные admin
+// endpoint'ы (failClosed) без Upstash в production закрываются, а не открываются.
 function rateLimitMemory(key: string, limit: number, windowMs: number) {
   const now = Date.now();
   const current = bucket.get(key);
@@ -34,8 +35,10 @@ async function rateLimitUpstash(url: string, token: string, key: string, limit: 
   return Number(data[0]?.result ?? 1) <= limit;
 }
 
-// Критичные (auth/admin) операции при недоступности стора закрываются (503),
-// некритичные открываются, чтобы падение Redis не ломало Mini App.
+// Критичные admin-операции (failClosed) при недоступности стора закрываются (503).
+// Остальные endpoint'ы (включая /api/telegram/auth) при недоступном/отсутствующем
+// Upstash работают через memory fallback — безопасность auth обеспечивает
+// HMAC-валидация initData, rate limit здесь лишь защита от brute-force.
 export const RATE_LIMIT_FAIL_CLOSED = Symbol("RATE_LIMIT_FAIL_CLOSED");
 export type RateLimitResult = boolean | typeof RATE_LIMIT_FAIL_CLOSED;
 
@@ -53,9 +56,9 @@ export async function rateLimit(
     } catch (error) {
       console.error("Rate limit store unavailable:", error instanceof Error ? error.message : "unknown");
       if (options.failClosed) return RATE_LIMIT_FAIL_CLOSED;
-      // Fail-open только для некритичных endpoint'ов: недоступность Redis
-      // не должна ломать Mini App.
-      return true;
+      // Upstash настроен, но недоступен: некритичные endpoint'ы продолжают
+      // работать через memory fallback — падение Redis не должно ломать Mini App.
+      return rateLimitMemory(key, limit, windowMs);
     }
   }
   if (options.failClosed) {

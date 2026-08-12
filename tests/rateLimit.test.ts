@@ -37,6 +37,29 @@ describe("rateLimit (memory fallback)", () => {
     expect(result).toBe(true);
   });
 
+  it("Upstash настроен и работает: лимит применяется через INCR", async () => {
+    vi.stubEnv("UPSTASH_REDIS_REST_URL", "http://upstash.local");
+    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "tok");
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      // INCR=1 -> разрешено, INCR=2 -> превышение лимита 1
+      .mockResolvedValueOnce(new Response(JSON.stringify([{ result: 1 }]), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify([{ result: 2 }]), { status: 200 }));
+    const key = `up:${Math.random()}`;
+    expect(await rateLimit(key, 1, 60_000)).toBe(true);
+    expect(await rateLimit(key, 1, 60_000)).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    fetchMock.mockRestore();
+  });
+
+  it("Upstash настроен, но недоступен: некритичные endpoint'ы работают через memory fallback", async () => {
+    vi.stubEnv("UPSTASH_REDIS_REST_URL", "http://127.0.0.1:1");
+    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "tok");
+    const key = `up-fail:${Math.random()}`;
+    expect(await rateLimit(key, 1, 60_000)).toBe(true);   // fallback разрешает
+    expect(await rateLimit(key, 1, 60_000)).toBe(false);  // и продолжает лимитировать
+  });
+
   it("production без Upstash: fail-closed вместо memory fallback", async () => {
     vi.stubEnv("NODE_ENV", "production");
     const result = await rateLimit(`prod:${Math.random()}`, 1, 60_000, { failClosed: true });
