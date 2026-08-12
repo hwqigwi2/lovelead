@@ -20,7 +20,7 @@ export function Reviews() {
   return (
     <section className="reviews-section" aria-labelledby="reviews-title">
       <div className="section-heading">
-        <span className="eyebrow">ПРИМЕР НЕДАВНИЕ</span>
+        <span className="eyebrow">ТЕКУЩИЕ</span>
         <h2 id="reviews-title">Выплаты</h2>
       </div>
       <div className="reviews-carousel">
