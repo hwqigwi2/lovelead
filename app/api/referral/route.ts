@@ -5,7 +5,8 @@ import { buildReferralLink } from "@/lib/referral";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
-  if (!checkRateLimit(request)) return NextResponse.json({ error: "Слишком много запросов." }, { status: 429 });
+  const allowed = await checkRateLimit(request);
+  if (allowed !== true) return NextResponse.json({ error: allowed === false ? "Слишком много запросов." : "Сервис временно недоступен." }, { status: allowed === false ? 429 : 503 });
   try {
     const user = await requireUser(request);
     const db = getSupabaseAdmin();
@@ -17,7 +18,9 @@ export async function GET(request: NextRequest) {
     }
     const { data: referrals, error } = await db
       .from("users")
-      .select("first_name,username,telegram_id,created_at")
+      // Намеренно без telegram_id: пользователь не должен видеть
+      // Telegram ID приглашённых, только публичные имя/username.
+      .select("first_name,username,created_at")
       .eq("referred_by", user.id)
       .order("created_at", { ascending: false });
     if (error) throw error;

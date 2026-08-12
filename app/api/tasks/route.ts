@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { appConfig } from "@/lib/config";
+import { appConfig, resolveTaskUrl } from "@/lib/config";
 import { checkRateLimit, requireUser } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { applyTaskDependencies, getAvailableTaskSlugs, hasQualification } from "@/lib/qualificationEngine";
@@ -8,12 +8,17 @@ import type { TaskSlug, UserTaskStatus } from "@/types";
 const TBANK_RKO_LOCK_REASON = "Откроется после выполнения Альфа РКО";
 
 export async function GET(request: NextRequest) {
-  if (!checkRateLimit(request)) return NextResponse.json({ error: "Слишком много запросов." }, { status: 429 });
+  const allowed = await checkRateLimit(request);
+  if (allowed !== true) return NextResponse.json({ error: allowed === false ? "Слишком много запросов." : "Сервис временно недоступен." }, { status: allowed === false ? 429 : 503 });
   try {
     const user = await requireUser(request);
     if (!user.quiz_completed) return NextResponse.json({ tasks: [] });
     const db = getSupabaseAdmin();
-    const { data: tasks, error } = await db.from("tasks").select("*").eq("is_active", true).order("sort_order");
+    const { data: tasks, error } = await db
+      .from("tasks")
+      .select("id,slug,title,category,description,payout,payout_label,time_label,difficulty,image,sort_order")
+      .eq("is_active", true)
+      .order("sort_order");
     if (error) throw error;
     const { data: userTasks } = await db.from("user_tasks").select("task_id,status").eq("user_id", user.id);
     const statuses = new Map((userTasks ?? []).map((row) => [row.task_id, row.status]));
@@ -36,7 +41,7 @@ export async function GET(request: NextRequest) {
           conditions: config?.conditions, cta: config?.cta,
         };
       }
-      return { ...task, url: config?.url || null, status: (statuses.get(task.id) ?? "available") as UserTaskStatus, conditions: config?.conditions, cta: config?.cta };
+      return { ...task, url: resolveTaskUrl(slug, user), status: (statuses.get(task.id) ?? "available") as UserTaskStatus, conditions: config?.conditions, cta: config?.cta };
     });
     result.sort((a, b) => a.sort_order - b.sort_order);
     return NextResponse.json({ tasks: result });

@@ -7,6 +7,7 @@ export const RKO_DESCRIPTION = "Бесплатно откроем ИП на НП
 export const RKO_CONDITIONS = ["Разберись, какой статус подходит тебе (раздел «Как это работает» в помощь)", "Оформи нужный статус, если его ещё нет", "Напиши менеджеру", "Выполни условия задания", "Получи выплату по условиям задания"];
 
 const ALFA_RKO_URL = "https://t.me/m/1zR4iOFJMmUy";
+const ALFA_RKO_ARREST_URL = "https://t.me/m/USrX-QV0NzQy";
 
 export const appConfig = {
   botUsername: "Leadslovebot",
@@ -27,7 +28,7 @@ export const appConfig = {
     rko: {
       slug: "rko" as const, title: "Расчетный счет (Бизнес-карта) Альфа-Банк", category: "Популярно", payout: 5000,
       payoutLabel: "5 000 ₽", timeLabel: "Индивидуально", difficulty: "3/5", image: "/arko.jpg",
-      url: ALFA_RKO_URL, cta: "Оформить бизнес-карту",
+      url: ALFA_RKO_URL, arrestUrl: ALFA_RKO_ARREST_URL, cta: "Оформить бизнес-карту",
       description: RKO_DESCRIPTION,
       conditions: RKO_CONDITIONS,
     },
@@ -40,3 +41,10 @@ export const appConfig = {
     },
   },
 } as const;
+
+// Ссылка на задание определяется только серверной логикой по сохранённым в БД
+// данным пользователя. Клиент никогда не передаёт has_arrest для выбора ссылки.
+export function resolveTaskUrl(slug: TaskSlug, user: { has_arrest: boolean | null }): string {
+  if (slug === "rko" && user.has_arrest === true) return appConfig.tasks.rko.arrestUrl;
+  return appConfig.tasks[slug].url;
+}

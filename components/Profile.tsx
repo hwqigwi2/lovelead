@@ -10,7 +10,7 @@ interface ReferralInfo {
   code: string;
   link: string;
   invitedCount: number;
-  referrals: Array<{ first_name: string; username: string | null; telegram_id: number; created_at: string }>;
+  referrals: Array<{ first_name: string; username: string | null; created_at: string }>;
 }
 
 const rewards = [

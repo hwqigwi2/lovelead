@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { applyTaskDependencies, getAvailableTaskSlugs, hasQualification, isRkoGuideRequired, isTaskAvailable } from "../lib/qualificationEngine";
-import { appConfig, RKO_CONDITIONS, RKO_DESCRIPTION } from "../lib/config";
+import { appConfig, resolveTaskUrl, RKO_CONDITIONS, RKO_DESCRIPTION } from "../lib/config";
 import { rkoGuideSteps } from "../components/RkoGuide";
 
 const input = (overrides = {}) => ({ age: 18, is_military: false, has_arrest: false, ...overrides });
@@ -13,7 +13,21 @@ describe("qualification engine", () => {
     expect(slugs).not.toContain("rko");
     expect(slugs).not.toContain("tbank-rko");
   });
-  it("users with arrests get no tasks", () => expect(getAvailableTaskSlugs(input({ has_arrest: true }))).toEqual([]));
+  it("users with arrests get Alfa RKO only (debet unavailable, T-Bank until Alfa done)", () => {
+    const slugs = getAvailableTaskSlugs(input({ has_arrest: true }));
+    expect(slugs).toEqual(["rko", "tbank-rko"]);
+    expect(slugs).toContain("rko");
+    expect(slugs).not.toContain("debet");
+  });
+  it("arrest user: debet stays unavailable even at 18+", () => {
+    expect(isTaskAvailable(input({ has_arrest: true, age: 30 }), "debet")).toBe(false);
+    expect(isTaskAvailable(input({ has_arrest: true, age: 30 }), "rko")).toBe(true);
+  });
+  it("arrest user: T-Bank RKO is locked until Alfa RKO is completed", () => {
+    const slugs = getAvailableTaskSlugs(input({ has_arrest: true }));
+    expect(applyTaskDependencies(slugs, [])).toEqual(["rko"]);
+    expect(applyTaskDependencies(slugs, ["rko"])).toEqual(["rko", "tbank-rko"]);
+  });
   it("does not qualify minors", () => expect(getAvailableTaskSlugs(input({ age: 17 }))).toEqual([]));
   it("qualifies a user at the lower age boundary (18)", () => expect(getAvailableTaskSlugs(input({ age: 18 })).length).toBeGreaterThan(0));
   it("isTaskAvailable reflects available slugs", () => {
@@ -128,5 +142,22 @@ describe("debet task", () => {
   });
   it("Alfa RKO keeps its CTA and manager link", () => {
     expect(appConfig.tasks.rko.url).toBe("https://t.me/m/1zR4iOFJMmUy");
+  });
+});
+
+describe("resolveTaskUrl", () => {
+  it("returns the regular Alfa RKO link for users without arrests", () => {
+    expect(resolveTaskUrl("rko", { has_arrest: false })).toBe("https://t.me/m/1zR4iOFJMmUy");
+    expect(resolveTaskUrl("rko", { has_arrest: null })).toBe("https://t.me/m/1zR4iOFJMmUy");
+  });
+  it("returns the special Alfa RKO link for users with arrests", () => {
+    expect(resolveTaskUrl("rko", { has_arrest: true })).toBe("https://t.me/m/USrX-QV0NzQy");
+  });
+  it("does not change links of other tasks based on arrests", () => {
+    expect(resolveTaskUrl("debet", { has_arrest: true })).toBe(appConfig.tasks.debet.url);
+    expect(resolveTaskUrl("tbank-rko", { has_arrest: true })).toBe(appConfig.tasks["tbank-rko"].url);
+  });
+  it("T-Bank RKO has no arrest-specific override", () => {
+    expect(appConfig.tasks["tbank-rko"].url).toBe("https://t.me/m/1zR4iOFJMmUy");
   });
 });

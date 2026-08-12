@@ -99,7 +99,7 @@ export function AdminPanel() {
     return () => clearTimeout(timer);
   }, [query, initData, load]);
 
-  const setTaskStatus = async (userId: string, taskId: string, action: "hide" | "unhide") => {
+  const setTaskStatus = async (userId: string, taskId: string, action: "hide" | "unhide" | "complete") => {
     const key = `${userId}:${taskId}`;
     setUpdatingTask(key);
     try {
@@ -116,6 +116,13 @@ export function AdminPanel() {
   const hideTask = async (userId: string, taskId: string, title: string) => {
     if (!window.confirm(`Скрыть задание «${title}» для этого пользователя?`)) return;
     await setTaskStatus(userId, taskId, "hide");
+  };
+
+  // Подтверждение выполнения задания делает только админ: статус переводится
+  // в completed на сервере (started -> completed), это открывает T-Банк РКО.
+  const completeTask = async (userId: string, taskId: string, title: string) => {
+    if (!window.confirm(`Подтвердить выполнение «${title}»? Откроет зависимые задания.`)) return;
+    await setTaskStatus(userId, taskId, "complete");
   };
 
   if (!initData && !error) {
@@ -181,6 +188,7 @@ export function AdminPanel() {
               updatingTask={updatingTask}
               onHide={(taskId, title) => void hideTask(user.id, taskId, title)}
               onUnhide={(taskId) => void setTaskStatus(user.id, taskId, "unhide")}
+              onComplete={(taskId, title) => void completeTask(user.id, taskId, title)}
             />
           ))}
         </section>

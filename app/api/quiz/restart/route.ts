@@ -3,7 +3,8 @@ import { checkRateLimit, requireUser } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
-  if (!checkRateLimit(request, 5)) return NextResponse.json({ error: "Слишком много попыток. Попробуйте позже." }, { status: 429 });
+  const allowed = await checkRateLimit(request, 5);
+  if (allowed !== true) return NextResponse.json({ error: allowed === false ? "Слишком много попыток. Попробуйте позже." : "Сервис временно недоступен." }, { status: allowed === false ? 429 : 503 });
   try {
     const user = await requireUser(request);
     const db = getSupabaseAdmin();

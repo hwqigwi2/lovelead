@@ -1,4 +1,4 @@
-import { EyeOff, RotateCcw } from "lucide-react";
+import { CheckCircle2, EyeOff, RotateCcw } from "lucide-react";
 import type { AdminUser, UserTask } from "./AdminPanel";
 
 const TASK_SLUGS = ["debet", "rko", "tbank-rko"] as const;
@@ -22,9 +22,10 @@ type Props = {
   updatingTask: string | null;
   onHide: (taskId: string, title: string) => void;
   onUnhide: (taskId: string) => void;
+  onComplete: (taskId: string, title: string) => void;
 };
 
-export function UserCard({ user, updatingTask, onHide, onUnhide }: Props) {
+export function UserCard({ user, updatingTask, onHide, onUnhide, onComplete }: Props) {
   const initial = user.first_name.trim().charAt(0).toUpperCase() || "·";
   const bySlug = new Map<string, UserTask>();
   for (const row of user.user_tasks) {
@@ -79,6 +80,11 @@ export function UserCard({ user, updatingTask, onHide, onUnhide }: Props) {
             <li key={row.key} className="admin-task-row">
               <span className="admin-task-name">{row.title}</span>
               <span className={`admin-badge admin-badge-${row.status}`}>{STATUS_LABELS[row.status] ?? row.status}</span>
+              {row.status === "started" && row.taskId ? (
+                <button type="button" className="admin-action admin-action-complete" disabled={busy} onClick={() => onComplete(row.taskId!, row.title)}>
+                  <CheckCircle2 size={13} /> {busy ? "…" : "Подтвердить выполнение"}
+                </button>
+              ) : null}
               {row.status === "hidden" && row.taskId ? (
                 <button type="button" className="admin-action admin-action-ghost" disabled={busy} onClick={() => onUnhide(row.taskId!)}>
                   <RotateCcw size={13} /> {busy ? "…" : "Вернуть"}

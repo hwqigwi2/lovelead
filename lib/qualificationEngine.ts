@@ -3,7 +3,9 @@ import type { QualificationInput, RkoQuizResult, TaskSlug } from "@/types";
 
 export function getAvailableTaskSlugs(input: QualificationInput): TaskSlug[] {
   if (input.age < 18) return [];
-  if (input.has_arrest) return [];
+  // При арестах/ограничениях доступна только Альфа РКО; Т-Банк РКО откроется
+  // после её выполнения (см. applyTaskDependencies), дебетовые карты недоступны.
+  if (input.has_arrest) return appConfig.taskOrder.filter((slug) => slug !== "debet");
   const available: TaskSlug[] = ["debet"];
   if (!input.is_military) available.push("rko", "tbank-rko");
   return appConfig.taskOrder.filter((slug) => available.includes(slug));

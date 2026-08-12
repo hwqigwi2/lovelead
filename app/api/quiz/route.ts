@@ -6,7 +6,8 @@ import { getAvailableTaskSlugs } from "@/lib/qualificationEngine";
 
 const answersSchema = z.object({ age: z.number().int().min(0).max(120), is_military: z.boolean(), has_arrest: z.boolean() });
 export async function POST(request: NextRequest) {
-  if (!checkRateLimit(request, 10)) return NextResponse.json({ error: "Слишком много попыток. Попробуйте позже." }, { status: 429 });
+  const allowed = await checkRateLimit(request, 10);
+  if (allowed !== true) return NextResponse.json({ error: allowed === false ? "Слишком много попыток. Попробуйте позже." : "Сервис временно недоступен." }, { status: allowed === false ? 429 : 503 });
   try {
     const user = await requireUser(request);
     const answers = answersSchema.parse(await request.json());

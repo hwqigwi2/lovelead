@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { appConfig } from "@/lib/config";
-import { upsertTelegramUser } from "@/lib/auth";
+import { checkRateLimit, upsertTelegramUser } from "@/lib/auth";
 import { sendLongTextMessage, sendStartMessage, sendTextMessage } from "@/lib/bot";
 import { parseStartRef } from "@/lib/referral";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
@@ -91,6 +91,8 @@ async function handleAdmin(chatId: number, telegramId: number | undefined) {
 }
 
 export async function POST(request: NextRequest) {
+  const allowed = await checkRateLimit(request, 60);
+  if (allowed !== true) return NextResponse.json({ ok: false }, { status: allowed === false ? 429 : 503 });
   try {
     const expected = process.env.TELEGRAM_WEBHOOK_SECRET;
     if (!expected) return NextResponse.json({ error: "Webhook не настроен." }, { status: 503 });

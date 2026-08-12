@@ -4,7 +4,8 @@ import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { getAvailableTaskSlugs, hasQualification } from "@/lib/qualificationEngine";
 
 export async function GET(request: NextRequest) {
-  if (!checkRateLimit(request, 20)) return NextResponse.json({ error: "Слишком много запросов." }, { status: 429 });
+  const allowed = await checkRateLimit(request, 20, true);
+  if (allowed !== true) return NextResponse.json({ error: allowed === false ? "Слишком много запросов." : "Сервис временно недоступен." }, { status: allowed === false ? 429 : 503 });
   try {
     requireAdmin(await requireUser(request));
     const db = getSupabaseAdmin();
@@ -19,7 +20,9 @@ export async function GET(request: NextRequest) {
     const countStarted = (slug: string) => (started ?? []).filter((row) => { const task = row.tasks as unknown as { slug: string } | null; return task?.slug === slug; }).length;
     return NextResponse.json({ totalUsers: users?.length ?? 0, quizCompleted: (users ?? []).filter((user) => user.quiz_completed).length, debetAvailable: countAvailable("debet"), rkoAvailable: countAvailable("rko"), tbankRkoAvailable: countAvailable("tbank-rko"), debetStarted: countStarted("debet"), rkoStarted: countStarted("rko"), tbankRkoStarted: countStarted("tbank-rko"), hiddenTasks: hidden?.length ?? 0 });
   } catch (error) {
-    const status = error instanceof Error && error.message === "Forbidden." ? 403 : 500;
-    return NextResponse.json({ error: status === 403 ? "Доступ запрещён." : "Не удалось загрузить данные. Попробуйте ещё раз." }, { status });
+    const message = error instanceof Error ? error.message : "";
+    const status = message === "Forbidden." ? 403 : message === "User session was not initialized." ? 401 : 500;
+    const text = status === 403 ? "Доступ запрещён." : status === 401 ? "Требуется авторизация." : "Не удалось загрузить данные. Попробуйте ещё раз.";
+    return NextResponse.json({ error: text }, { status });
   }
 }

@@ -5,7 +5,8 @@ import { isTaskAvailable, hasQualification } from "@/lib/qualificationEngine";
 import type { TaskSlug } from "@/types";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!checkRateLimit(request, 10)) return NextResponse.json({ error: "Слишком много попыток." }, { status: 429 });
+  const allowed = await checkRateLimit(request, 10);
+  if (allowed !== true) return NextResponse.json({ error: allowed === false ? "Слишком много попыток." : "Сервис временно недоступен." }, { status: allowed === false ? 429 : 503 });
   try {
     const user = await requireUser(request);
     if (!user.quiz_completed || !hasQualification(user)) return NextResponse.json({ error: "Задание недоступно." }, { status: 403 });
