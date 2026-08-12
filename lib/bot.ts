@@ -46,7 +46,7 @@ export async function sendStartMessage(
         chat_id: chatId,
         text: `👋 <b>Привет, ${firstName}!</b>
 
- <b>Пройди короткий опрос</b> и начинай выполнять свои первые задания 💙`,
+ <b>Пройди небольшой опрос</b> и начинай выполнять свои первые задания 💙`,
         parse_mode: "HTML",
         reply_markup: {
           inline_keyboard: [
