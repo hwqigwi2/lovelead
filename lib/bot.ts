@@ -69,7 +69,7 @@ export async function sendStartMessage(
     throw new Error("Telegram bot configuration is missing.");
   }
 
-  // 1. Сначала отправляем стикер
+  // Сначала отправляем стикер
   const stickerResponse = await fetch(
     `https://api.telegram.org/bot${token}/sendSticker`,
     {
@@ -97,7 +97,7 @@ export async function sendStartMessage(
     // Стикер не критичен — продолжаем отправку сообщения.
   }
 
-  // 2. Отправляем приветственное сообщение
+  // Затем отправляем приветственное сообщение
   const messageResponse = await fetch(
     `https://api.telegram.org/bot${token}/sendMessage`,
     {
@@ -120,6 +120,7 @@ export async function sendStartMessage(
             [
               {
                 text: "Начать",
+                style: "primary",
                 web_app: {
                   url: miniAppUrl,
                 },
