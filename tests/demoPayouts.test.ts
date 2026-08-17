@@ -57,14 +57,14 @@ describe("demoPayouts (детерминированная генерация)", 
     }
   });
 
-  it("время идёт назад, интервал между соседними 5–20 минут", () => {
+  it("время идёт назад, интервал между соседними 20–60 минут", () => {
     // Сравниваем по внутренним временам слотов, а не только строкам "HH:MM"
     // (у полуночной границы строки «оборачиваются»). Используем time+дату:
-    // интервал = разница соседних слотов, она по построению 5–20 минут.
+    // интервал = разница соседних слотов, она по построению 20–60 минут.
     for (let slot = 4000; slot < 4030; slot++) {
       const v = intervalMinutesFor(slot);
-      expect(v).toBeGreaterThanOrEqual(5);
-      expect(v).toBeLessThanOrEqual(20);
+      expect(v).toBeGreaterThanOrEqual(20);
+      expect(v).toBeLessThanOrEqual(60);
     }
     // А строки идут «назад по модулю суток», т.е. prev = next - v.
     const now = Date.UTC(2026, 7, 12, 15, 0, 0);
@@ -73,8 +73,8 @@ describe("demoPayouts (детерминированная генерация)", 
       const cur = parseTime(payouts[i].time);
       const nxt = parseTime(payouts[i + 1].time);
       const diff = ((cur - nxt) % 1440 + 1440) % 1440; // назад по модулю суток
-      expect(diff).toBeGreaterThanOrEqual(5);
-      expect(diff).toBeLessThanOrEqual(20);
+      expect(diff).toBeGreaterThanOrEqual(20);
+      expect(diff).toBeLessThanOrEqual(60);
     }
   });
 
@@ -82,8 +82,8 @@ describe("demoPayouts (детерминированная генерация)", 
     // Берём набор и шагаем вперёд за следующий слот: свежая выплата теперь другая.
     const now = Date.UTC(2026, 7, 12, 15, 0, 0);
     const before = getDemoPayouts(now);
-    // Шаг вперёд на 25 минут гарантированно даёт новый свежий слот (макс интервал 20).
-    const after = getDemoPayouts(now + 25 * 60_000);
+    // Шаг вперёд на 65 минут гарантированно даёт новый свежий слот (макс интервал 60).
+    const after = getDemoPayouts(now + 65 * 60_000);
     expect(after[0]).not.toEqual(before[0]); // новая первая выплата
     // Новая «after» должна содержать «before» как суффикс (сдвиг на k слотов).
     const shift = after.findIndex((p) => p.time === before[0].time && p.amount === before[0].amount && p.name === before[0].name);
@@ -91,12 +91,12 @@ describe("demoPayouts (детерминированная генерация)", 
     expect(after.slice(shift)).toEqual(before.slice(0, before.length - shift));
   });
 
-  it("intervalMinutesFor детерминирован и в диапазоне 5–20", () => {
+  it("intervalMinutesFor детерминирован и в диапазоне 20–60", () => {
     for (let slot = 4090; slot < 4120; slot++) {
       const v = intervalMinutesFor(slot);
       expect(v).toBe(intervalMinutesFor(slot));
-      expect(v).toBeGreaterThanOrEqual(5);
-      expect(v).toBeLessThanOrEqual(20);
+      expect(v).toBeGreaterThanOrEqual(20);
+      expect(v).toBeLessThanOrEqual(60);
     }
   });
 });

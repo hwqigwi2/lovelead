@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { appConfig } from "@/lib/config";
 import { checkRateLimit, upsertTelegramUser } from "@/lib/auth";
-import { sendLongTextMessage, sendStartMessage, sendTextMessage } from "@/lib/bot";
+import { sendLongTextMessage, sendPhotoMessage, sendStartMessage, sendTextMessage } from "@/lib/bot";
 import { parseStartRef } from "@/lib/referral";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import type { UserTaskStatus } from "@/types";
@@ -17,6 +17,8 @@ const updateSchema = z.object({
       username: z.string().optional(),
     }).optional(),
     text: z.string().optional(),
+    caption: z.string().optional(),
+    photo: z.array(z.object({ file_id: z.string() })).optional(),
   }).optional(),
 });
 
@@ -90,6 +92,69 @@ async function handleAdmin(chatId: number, telegramId: number | undefined) {
   await sendLongTextMessage(chatId, lines.join("\n"));
 }
 
+type WebhookMessage = {
+  chat: { id: number };
+  from?: { id: number; first_name: string; last_name?: string; username?: string };
+  text?: string;
+  caption?: string;
+  photo?: { file_id: string }[];
+};
+
+// Telegram-IDs админов, ожидающих контент рассылки после команды /post.
+// Состояние одноразовое: сбрасывается на первом же следующем сообщении админа.
+const pendingPostAdmins = new Set<number>();
+
+async function handlePost(chatId: number, telegramId: number | undefined) {
+  if (!telegramId || !appConfig.adminTelegramIds.includes(telegramId)) {
+    await sendTextMessage(chatId, "Команда недоступна.");
+    return;
+  }
+  pendingPostAdmins.add(telegramId);
+  await sendTextMessage(chatId, "Отправьте сообщение для рассылки. Можно отправить текст или фотографию с подписью.");
+}
+
+// Рассылка идёт батчами с ограниченным параллелизмом, чтобы не упереться
+// в rate limits Telegram Bot API. Ошибка одному получателю (например, бот
+// заблокирован) засчитывается в статистику и не останавливает рассылку.
+const BROADCAST_BATCH_SIZE = 20;
+
+async function broadcastToAllUsers(content: { text?: string; photoFileId?: string; caption?: string }) {
+  const db = getSupabaseAdmin();
+  const { data: users } = await db.from("users").select("telegram_id").not("telegram_id", "is", null);
+  const telegramIds = (users ?? [])
+    .map((user) => user.telegram_id)
+    .filter((id): id is number => typeof id === "number");
+  let sent = 0;
+  let failed = 0;
+  for (let i = 0; i < telegramIds.length; i += BROADCAST_BATCH_SIZE) {
+    const batch = telegramIds.slice(i, i + BROADCAST_BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map((telegramId) =>
+        content.photoFileId
+          ? sendPhotoMessage(telegramId, content.photoFileId, content.caption)
+          : sendTextMessage(telegramId, content.text ?? "")
+      )
+    );
+    for (const result of results) {
+      if (result.status === "fulfilled") sent += 1;
+      else failed += 1;
+    }
+  }
+  return { total: telegramIds.length, sent, failed };
+}
+
+async function handlePostContent(message: WebhookMessage, telegramId: number) {
+  // Сбрасываем состояние до отправки: без нового /post повторной рассылки не будет.
+  pendingPostAdmins.delete(telegramId);
+  const photoFileId = message.photo?.length ? message.photo[message.photo.length - 1].file_id : undefined;
+  if (!photoFileId && !message.text) {
+    await sendTextMessage(message.chat.id, "Рассылка отменена: можно отправить только текст или фотографию с подписью.");
+    return;
+  }
+  const stats = await broadcastToAllUsers({ text: message.text, photoFileId, caption: message.caption });
+  await sendTextMessage(message.chat.id, `Рассылка завершена.\n\nВсего: ${stats.total}\nОтправлено: ${stats.sent}\nОшибок: ${stats.failed}`);
+}
+
 export async function POST(request: NextRequest) {
   const allowed = await checkRateLimit(request, 60);
   if (allowed !== true) return NextResponse.json({ ok: false }, { status: allowed === false ? 429 : 503 });
@@ -99,13 +164,22 @@ export async function POST(request: NextRequest) {
     if (request.headers.get("x-telegram-bot-api-secret-token") !== expected) return NextResponse.json({ ok: false }, { status: 401 });
     const update = updateSchema.parse(await request.json());
     const message = update.message;
-    if (!message?.text) return NextResponse.json({ ok: true });
+    if (!message) return NextResponse.json({ ok: true });
+    const telegramId = message.from?.id;
+    // Следующее сообщение админа после /post — контент рассылки, а не команда.
+    if (telegramId && pendingPostAdmins.has(telegramId)) {
+      await handlePostContent(message, telegramId);
+      return NextResponse.json({ ok: true });
+    }
+    if (!message.text) return NextResponse.json({ ok: true });
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (message.text.startsWith("/start")) {
       if (!appUrl) throw new Error("Mini app URL is missing.");
       await handleStart({ chat: message.chat, from: message.from, text: message.text }, appUrl);
     } else if (message.text.trim() === "/admin") {
-      await handleAdmin(message.chat.id, message.from?.id);
+      await handleAdmin(message.chat.id, telegramId);
+    } else if (message.text.trim() === "/post") {
+      await handlePost(message.chat.id, telegramId);
     }
     return NextResponse.json({ ok: true });
   } catch {
