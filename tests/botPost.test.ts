@@ -114,6 +114,37 @@ describe("команда /post", () => {
     await POST(req(messageUpdate(ADMIN_ID, { text: "контент" })));
   });
 
+  it("админ получает приглашение и по команде в формате /post@Leadslovebot", async () => {
+    await POST(req(messageUpdate(ADMIN_ID, { text: "/post@Leadslovebot" })));
+    expect(mockSendTextMessage).toHaveBeenCalledWith(
+      ADMIN_ID,
+      "Отправьте сообщение для рассылки. Можно отправить текст или фотографию с подписью."
+    );
+
+    // Рассылка запускается и после формата с @bot.
+    mockSendTextMessage.mockClear();
+    mockBroadcastUsers([501]);
+    await POST(req(messageUpdate(ADMIN_ID, { text: "рассылка после @" })));
+    expect(mockSendTextMessage).toHaveBeenCalledWith(501, "рассылка после @");
+  });
+
+  it("команда вместо контента отменяет ожидание /post и не уходит в рассылку", async () => {
+    await POST(req(messageUpdate(ADMIN_ID, { text: "/post" })));
+    mockDb.from.mockClear();
+    await POST(req(messageUpdate(ADMIN_ID, { text: "/post" })));
+
+    // Повторный /post не разослан пользователям, а снова включил режим рассылки.
+    expect(mockDb.from).not.toHaveBeenCalled();
+    expect(mockSendTextMessage).toHaveBeenCalledWith(
+      ADMIN_ID,
+      "Отправьте сообщение для рассылки. Можно отправить текст или фотографию с подписью."
+    );
+
+    // Сбрасываем состояние.
+    mockBroadcastUsers([]);
+    await POST(req(messageUpdate(ADMIN_ID, { text: "контент" })));
+  });
+
   it("следующее текстовое сообщение админа уходит всем пользователям с telegram_id", async () => {
     await POST(req(messageUpdate(ADMIN_ID, { text: "/post" })));
     mockSendTextMessage.mockClear();
@@ -194,5 +225,65 @@ describe("команда /post", () => {
     expect(res.status).toBe(200);
     expect(mockUpsertTelegramUser).toHaveBeenCalled();
     expect(mockSendStartMessage).toHaveBeenCalledWith(USER_ID, "Name", "https://mini.app");
+  });
+
+  describe("команда /admin", () => {
+    function mockAdminDb() {
+      mockDb.from.mockImplementation((table: string) => {
+        if (table === "users") {
+          return {
+            select: vi.fn().mockReturnValue({
+              order: vi.fn().mockReturnValue({
+                limit: vi.fn().mockResolvedValue({
+                  data: [
+                    {
+                      id: "u1",
+                      telegram_id: USER_ID,
+                      first_name: "User",
+                      last_name: null,
+                      username: null,
+                      referred_by: null,
+                      created_at: "2026-01-01",
+                    },
+                  ],
+                }),
+              }),
+            }),
+          };
+        }
+        return {
+          select: vi.fn().mockReturnValue({
+            in: vi.fn().mockResolvedValue({ data: [] }),
+          }),
+        };
+      });
+    }
+
+    it("админ получает список пользователей", async () => {
+      mockAdminDb();
+      const res = await POST(req(messageUpdate(ADMIN_ID, { text: "/admin" })));
+      expect(res.status).toBe(200);
+      expect(mocks.sendLongTextMessage).toHaveBeenCalledWith(
+        ADMIN_ID,
+        expect.stringContaining("Пользователи (1):")
+      );
+    });
+
+    it("/admin работает и в формате /admin@Leadslovebot", async () => {
+      mockAdminDb();
+      const res = await POST(req(messageUpdate(ADMIN_ID, { text: "/admin@Leadslovebot" })));
+      expect(res.status).toBe(200);
+      expect(mocks.sendLongTextMessage).toHaveBeenCalledWith(
+        ADMIN_ID,
+        expect.stringContaining("Пользователи (1):")
+      );
+    });
+
+    it("обычный пользователь получает отказ", async () => {
+      const res = await POST(req(messageUpdate(USER_ID, { text: "/admin" })));
+      expect(res.status).toBe(200);
+      expect(mockSendTextMessage).toHaveBeenCalledWith(USER_ID, "Команда недоступна.");
+      expect(mocks.sendLongTextMessage).not.toHaveBeenCalled();
+    });
   });
 });

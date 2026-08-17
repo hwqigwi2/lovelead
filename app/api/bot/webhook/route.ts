@@ -92,6 +92,20 @@ async function handleAdmin(chatId: number, telegramId: number | undefined) {
   await sendLongTextMessage(chatId, lines.join("\n"));
 }
 
+// Telegram присылает команды не только как "/post", но и как "/post@Leadslovebot"
+// (в группах и при тапе по команде-ссылке). Exact string comparison с "/post"
+// такие сообщения не матчил, поэтому команда молча игнорировалась.
+function matchCommand(text: string, command: string): boolean {
+  const normalized = text.trim().toLowerCase();
+  if (normalized === command) return true;
+  const atIndex = normalized.indexOf("@");
+  if (atIndex === -1) return false;
+  return (
+    normalized.slice(0, atIndex) === command &&
+    normalized.slice(atIndex + 1) === appConfig.botUsername.toLowerCase()
+  );
+}
+
 type WebhookMessage = {
   chat: { id: number };
   from?: { id: number; first_name: string; last_name?: string; username?: string };
@@ -168,17 +182,23 @@ export async function POST(request: NextRequest) {
     const telegramId = message.from?.id;
     // Следующее сообщение админа после /post — контент рассылки, а не команда.
     if (telegramId && pendingPostAdmins.has(telegramId)) {
-      await handlePostContent(message, telegramId);
-      return NextResponse.json({ ok: true });
+      // Если админ вместо контента прислал новую команду, отменяем ожидание
+      // и обрабатываем её как обычную команду — иначе текст команды ушёл бы в рассылку.
+      if (message.text?.trim().startsWith("/")) {
+        pendingPostAdmins.delete(telegramId);
+      } else {
+        await handlePostContent(message, telegramId);
+        return NextResponse.json({ ok: true });
+      }
     }
     if (!message.text) return NextResponse.json({ ok: true });
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (message.text.startsWith("/start")) {
       if (!appUrl) throw new Error("Mini app URL is missing.");
       await handleStart({ chat: message.chat, from: message.from, text: message.text }, appUrl);
-    } else if (message.text.trim() === "/admin") {
+    } else if (matchCommand(message.text, "/admin")) {
       await handleAdmin(message.chat.id, telegramId);
-    } else if (message.text.trim() === "/post") {
+    } else if (matchCommand(message.text, "/post")) {
       await handlePost(message.chat.id, telegramId);
     }
     return NextResponse.json({ ok: true });
